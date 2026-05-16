@@ -115,6 +115,7 @@ async function highlightAcceptedErrorsOnPage(pdfPage, pdfJsPage, textsToHighligh
 export async function exportPdfWithAnnotations({
   sourceFile,
   annotationStrokes,
+  annotationHighlights,
   acceptedErrorRegistry,
   totalPages,
 }) {
@@ -140,6 +141,30 @@ export async function exportPdfWithAnnotations({
       for (const stroke of pageStrokes) {
         drawStrokeOnPage(pdfPage, stroke, estimatedCanvasWidth, estimatedCanvasHeight);
       }
+    }
+
+    const pageHighlights = annotationHighlights[pageNumber];
+    if (pageHighlights && pageHighlights.length > 0) {
+      const scaleX = pdfPageWidth / estimatedCanvasWidth;
+      const scaleY = pdfPageHeight / estimatedCanvasHeight;
+
+      pageHighlights.forEach((highlight) => {
+        highlight.rects.forEach((rect) => {
+          const rectPdfWidth = rect.width * scaleX;
+          const rectPdfHeight = rect.height * scaleY;
+          const pdfX = rect.x * scaleX;
+          const pdfY = pdfPageHeight - (rect.y * scaleY) - rectPdfHeight;
+
+          pdfPage.drawRectangle({
+            x: pdfX,
+            y: pdfY,
+            width: rectPdfWidth,
+            height: rectPdfHeight,
+            color: rgb(1, 1, 0),
+            opacity: 0.3,
+          });
+        });
+      });
     }
 
     const pdfJsPage = await pdfJsDoc.getPage(pageNumber);

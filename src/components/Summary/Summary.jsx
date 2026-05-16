@@ -16,6 +16,7 @@ export default function Summary() {
     analysisGeneratedAt,
     documentFile,
     annotationStrokes,
+    annotationHighlights,
   } = state;
 
   const [isExportingPdf, setIsExportingPdf] = useState(false);
@@ -53,6 +54,7 @@ export default function Summary() {
       const result = await exportPdfWithAnnotations({
         sourceFile: documentFile,
         annotationStrokes,
+        annotationHighlights,
         acceptedErrorRegistry,
       });
 
