@@ -110,7 +110,30 @@ export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber }) 
         pointerEvents: isDrawingModeActive ? 'auto' : 'none',
       }}
     >
-      <div className="d-flex gap-2 mb-2" style={{ pointerEvents: 'auto' }}>
+      <div
+        className="position-absolute"
+        style={{ top: 0, left: 0, width: pageWidth || '100%', height: pageHeight || 'auto' }}
+      >
+        <canvas
+          ref={canvasRef}
+          width={pageWidth || 800}
+          height={pageHeight || 600}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            cursor: isDrawingModeActive ? 'crosshair' : 'default',
+            pointerEvents: isDrawingModeActive ? 'auto' : 'none',
+            zIndex: 10,
+          }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerUp}
+        />
+      </div>
+
+      <div className="d-flex gap-2 mb-2" style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'auto', zIndex: 30 }}>
         <button
           className={`btn btn-sm ${
             isDrawingModeActive ? 'btn-danger' : 'btn-outline-danger'
@@ -129,26 +152,6 @@ export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber }) 
             Clear Page Strokes ({pageStrokeCount})
           </button>
         )}
-      </div>
-
-      <div className="position-relative" style={{ width: pageWidth || '100%', height: pageHeight || 'auto' }}>
-        <canvas
-          ref={canvasRef}
-          width={pageWidth || 800}
-          height={pageHeight || 600}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            cursor: isDrawingModeActive ? 'crosshair' : 'default',
-            pointerEvents: isDrawingModeActive ? 'auto' : 'none',
-            zIndex: 10,
-          }}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerUp}
-        />
       </div>
     </div>
   );
