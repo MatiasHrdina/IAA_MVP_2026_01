@@ -85,17 +85,21 @@ export default function PdfViewer() {
         const span = document.createElement('span');
         span.textContent = item.str;
         span.style.position = 'absolute';
-        span.style.left = `${item.transform[4] * SCALE * coordScale}px`;
-        span.style.top = `${item.transform[5] * SCALE * coordScale}px`;
-        span.style.fontSize = `${item.transform[0] * SCALE * coordScale}px`;
-        span.style.fontFamily = 'serif';
-        span.style.whiteSpace = 'pre';
+        span.className = 'pdf-text-entity';
+
+        const [x, y] = viewport.convertToViewportPoint(item.transform[4], item.transform[5]);
+        const fontSize = item.transform[0] * SCALE * coordScale;
+        span.style.fontSize = `${fontSize}px`;
+        span.style.lineHeight = 1;
+        span.style.fontFamily = item.fontName || 'sans-serif';
+        span.style.left = `${x * coordScale}px`;
+        span.style.top = `${(y * coordScale) - fontSize}px`;
         span.style.color = 'transparent';
         span.style.pointerEvents = isHighlightModeActive ? 'auto' : 'none';
         span.style.userSelect = isHighlightModeActive ? 'text' : 'none';
         span.style.cursor = isHighlightModeActive ? 'text' : 'default';
         span.style.zIndex = '2';
-        span.className = 'pdf-text-entity';
+        span.style.whiteSpace = 'pre';
 
         const text = item.str.toLowerCase();
 
@@ -103,7 +107,6 @@ export default function PdfViewer() {
         if (isAcceptedError) {
           span.style.backgroundColor = 'rgba(255, 230, 0, 0.5)';
           span.style.borderBottom = '2px solid rgba(255, 166, 0, 0.8)';
-          span.style.color = '#000';
         }
 
         textOverlay.appendChild(span);
