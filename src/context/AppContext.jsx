@@ -21,7 +21,7 @@ const initialSessionState = {
   performanceAnalysis: null,
   analysisGeneratedAt: null,
 
-  annotationStrokes: [],
+  annotationStrokes: {},
 };
 
 function deserializeState(persisted) {
@@ -53,6 +53,7 @@ function sessionReducer(state, action) {
         errorCorpus: action.payload.errorCorpus || {},
         acceptedErrorRegistry: [],
         rejectedErrorRegistry: [],
+        annotationStrokes: {},
         performanceAnalysis: null,
         currentScreen: 'workspace',
       };
@@ -82,10 +83,11 @@ function sessionReducer(state, action) {
       const updatedPageErrors = (state.errorCorpus[page] || []).map((e) =>
         e.id === error.id ? { ...e, status: 'accepted' } : e
       );
+      const errorWithPage = { ...error, page };
       return {
         ...state,
         errorCorpus: { ...state.errorCorpus, [page]: updatedPageErrors },
-        acceptedErrorRegistry: [...state.acceptedErrorRegistry, error],
+        acceptedErrorRegistry: [...state.acceptedErrorRegistry, errorWithPage],
       };
     }
 
@@ -94,24 +96,40 @@ function sessionReducer(state, action) {
       const updatedRejPageErrors = (state.errorCorpus[rejPage] || []).map((e) =>
         e.id === rejError.id ? { ...e, status: 'rejected' } : e
       );
+      const rejErrorWithPage = { ...rejError, page: rejPage };
       return {
         ...state,
         errorCorpus: { ...state.errorCorpus, [rejPage]: updatedRejPageErrors },
-        rejectedErrorRegistry: [...state.rejectedErrorRegistry, rejError],
+        rejectedErrorRegistry: [...state.rejectedErrorRegistry, rejErrorWithPage],
       };
     }
 
     case 'RECORD_STROKE': {
+      const { page, points, timestamp } = action.payload;
+      const pageStrokes = state.annotationStrokes[page] || [];
       return {
         ...state,
-        annotationStrokes: [...state.annotationStrokes, action.payload],
+        annotationStrokes: {
+          ...state.annotationStrokes,
+          [page]: [...pageStrokes, { points, timestamp, page }],
+        },
       };
     }
 
-    case 'CLEAR_STROKES': {
+    case 'CLEAR_PAGE_STROKES': {
+      const page = action.payload;
+      const updated = { ...state.annotationStrokes };
+      delete updated[page];
       return {
         ...state,
-        annotationStrokes: [],
+        annotationStrokes: updated,
+      };
+    }
+
+    case 'CLEAR_ALL_STROKES': {
+      return {
+        ...state,
+        annotationStrokes: {},
       };
     }
 
@@ -216,8 +234,13 @@ export function AppContextProvider({ children }) {
     []
   );
 
-  const clearStrokes = useCallback(
-    () => dispatch({ type: 'CLEAR_STROKES' }),
+  const clearPageStrokes = useCallback(
+    (page) => dispatch({ type: 'CLEAR_PAGE_STROKES', payload: page }),
+    []
+  );
+
+  const clearAllStrokes = useCallback(
+    () => dispatch({ type: 'CLEAR_ALL_STROKES' }),
     []
   );
 
@@ -245,7 +268,8 @@ export function AppContextProvider({ children }) {
     acceptError,
     rejectError,
     recordStroke,
-    clearStrokes,
+    clearPageStrokes,
+    clearAllStrokes,
     generateAnalysis,
     navigate,
     logoutAction,

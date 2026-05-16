@@ -1,8 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext';
 
-export default function AnnotationCanvas({ pageWidth, pageHeight }) {
-  const { state, recordStroke, clearStrokes } = useAppContext();
+export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber }) {
+  const { state, recordStroke, clearPageStrokes } = useAppContext();
   const { annotationStrokes } = state;
 
   const canvasRef = useRef(null);
@@ -10,13 +10,15 @@ export default function AnnotationCanvas({ pageWidth, pageHeight }) {
   const [isDrawing, setIsDrawing] = useState(false);
   const currentStrokeRef = useRef([]);
 
+  const currentPageStrokes = annotationStrokes[pageNumber] || [];
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    annotationStrokes.forEach((stroke) => {
+    currentPageStrokes.forEach((stroke) => {
       if (stroke.points.length < 2) return;
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(220, 38, 38, 0.85)';
@@ -29,7 +31,7 @@ export default function AnnotationCanvas({ pageWidth, pageHeight }) {
       }
       ctx.stroke();
     });
-  }, [annotationStrokes]);
+  }, [currentPageStrokes, pageNumber]);
 
   const getCanvasCoordinates = useCallback(
     (event) => {
@@ -77,6 +79,7 @@ export default function AnnotationCanvas({ pageWidth, pageHeight }) {
     setIsDrawing(false);
     if (currentStrokeRef.current.length > 0) {
       recordStroke({
+        page: pageNumber,
         points: [...currentStrokeRef.current],
         timestamp: Date.now(),
       });
@@ -84,8 +87,8 @@ export default function AnnotationCanvas({ pageWidth, pageHeight }) {
     currentStrokeRef.current = [];
   }
 
-  function handleClearAnnotations() {
-    clearStrokes();
+  function handleClearPageAnnotations() {
+    clearPageStrokes(pageNumber);
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx = canvas.getContext('2d');
@@ -93,9 +96,21 @@ export default function AnnotationCanvas({ pageWidth, pageHeight }) {
     }
   }
 
+  const pageStrokeCount = currentPageStrokes.length;
+
   return (
-    <div className="position-relative">
-      <div className="d-flex gap-2 mb-2">
+    <div
+      className="position-absolute"
+      style={{
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: 20,
+        pointerEvents: isDrawingModeActive ? 'auto' : 'none',
+      }}
+    >
+      <div className="d-flex gap-2 mb-2" style={{ pointerEvents: 'auto' }}>
         <button
           className={`btn btn-sm ${
             isDrawingModeActive ? 'btn-danger' : 'btn-outline-danger'
@@ -106,12 +121,12 @@ export default function AnnotationCanvas({ pageWidth, pageHeight }) {
             ? 'Deactivate Annotation Pen'
             : 'Activate Annotation Pen'}
         </button>
-        {annotationStrokes.length > 0 && (
+        {pageStrokeCount > 0 && (
           <button
             className="btn btn-sm btn-outline-secondary"
-            onClick={handleClearAnnotations}
+            onClick={handleClearPageAnnotations}
           >
-            Clear All Strokes
+            Clear Page Strokes ({pageStrokeCount})
           </button>
         )}
       </div>
@@ -126,6 +141,7 @@ export default function AnnotationCanvas({ pageWidth, pageHeight }) {
             top: 0,
             left: 0,
             cursor: isDrawingModeActive ? 'crosshair' : 'default',
+            pointerEvents: isDrawingModeActive ? 'auto' : 'none',
             zIndex: 10,
           }}
           onPointerDown={handlePointerDown}

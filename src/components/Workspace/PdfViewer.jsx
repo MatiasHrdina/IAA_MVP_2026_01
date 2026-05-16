@@ -10,7 +10,10 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 
 export default function PdfViewer() {
   const { state, setCurrentPage } = useAppContext();
-  const { documentUrl, currentPage, totalPages, acceptedErrorRegistry } = state;
+  const {
+    documentUrl, currentPage, totalPages,
+    acceptedErrorRegistry,
+  } = state;
 
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -53,20 +56,23 @@ export default function PdfViewer() {
       canvas.width = viewport.width;
       canvas.height = viewport.height;
       const ctx = canvas.getContext('2d');
-
       await page.render({ canvasContext: ctx, viewport }).promise;
 
       const textContent = await page.getTextContent();
       const textOverlay = textOverlayRef.current;
       textOverlay.innerHTML = '';
-      textOverlay.style.width = `${viewport.width}px`;
-      textOverlay.style.height = `${viewport.height}px`;
+
+      const displayW = Math.min(viewport.width, 700);
+      const coordScale = displayW / viewport.width;
+      const displayH = viewport.height * coordScale;
+
       textOverlay.style.position = 'absolute';
       textOverlay.style.top = '0';
       textOverlay.style.left = '0';
+      textOverlay.style.width = `${displayW}px`;
+      textOverlay.style.height = `${displayH}px`;
       textOverlay.style.overflow = 'hidden';
       textOverlay.style.zIndex = '5';
-      textOverlay.style.pointerEvents = 'none';
 
       const acceptedTexts = acceptedErrorRegistry
         .filter((e) => e.original_text)
@@ -76,18 +82,18 @@ export default function PdfViewer() {
         const span = document.createElement('span');
         span.textContent = item.str;
         span.style.position = 'absolute';
-        span.style.left = `${item.transform[4] * SCALE}px`;
-        span.style.top = `${item.transform[5] * SCALE}px`;
-        span.style.fontSize = `${item.height * SCALE}px`;
+        span.style.left = `${item.transform[4] * SCALE * coordScale}px`;
+        span.style.top = `${item.transform[5] * SCALE * coordScale}px`;
+        span.style.fontSize = `${item.height * SCALE * coordScale}px`;
         span.style.fontFamily = 'serif';
         span.style.whiteSpace = 'pre';
         span.style.color = 'transparent';
-        span.style.pointerEvents = 'none';
         span.className = 'pdf-text-entity';
 
         const text = item.str.toLowerCase();
-        const shouldHighlight = acceptedTexts.some((at) => text.includes(at));
-        if (shouldHighlight) {
+
+        const isAcceptedError = acceptedTexts.some((at) => text.includes(at));
+        if (isAcceptedError) {
           span.style.backgroundColor = 'rgba(255, 230, 0, 0.5)';
           span.style.borderBottom = '2px solid rgba(255, 166, 0, 0.8)';
           span.style.color = '#000';
@@ -141,7 +147,7 @@ export default function PdfViewer() {
       </div>
 
       <div
-        className="flex-grow-1 d-flex justify-content-center align-items-start p-3 overflow-auto"
+        className="flex-grow-1 d-flex justify-content-center p-3 overflow-auto position-relative"
         style={{ backgroundColor: '#e9ecef' }}
       >
         {isLoading && (
@@ -153,7 +159,7 @@ export default function PdfViewer() {
         <div
           ref={containerRef}
           className="position-relative shadow-sm bg-white"
-          style={{ width: `${displayWidth}px`, flexShrink: 0 }}
+          style={{ width: `${displayWidth}px`, flexShrink: 0, alignSelf: 'flex-start' }}
         >
           <canvas
             ref={canvasRef}
@@ -162,21 +168,11 @@ export default function PdfViewer() {
           />
           <div ref={textOverlayRef} />
 
-          <div
-            className="position-absolute"
-            style={{
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              zIndex: 20,
-            }}
-          >
-            <AnnotationCanvas
-              pageWidth={displayWidth}
-              pageHeight={displayHeight}
-            />
-          </div>
+          <AnnotationCanvas
+            pageWidth={displayWidth}
+            pageHeight={displayHeight}
+            pageNumber={currentPage}
+          />
         </div>
       </div>
     </div>
