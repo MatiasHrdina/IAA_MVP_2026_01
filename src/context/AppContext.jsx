@@ -118,14 +118,15 @@ function sessionReducer(state, action) {
       };
     }
 
-    case 'CLEAR_PAGE_STROKES': {
-      const page = action.payload;
-      const updated = { ...state.annotationStrokes };
-      delete updated[page];
-      return {
-        ...state,
-        annotationStrokes: updated,
+    case 'REVERT_LAST_STROKE': {
+      const { page } = action.payload;
+      const currentStrokes = state.annotationStrokes[page] || [];
+      if (currentStrokes.length === 0) return state;
+      const updatedStrokes = {
+        ...state.annotationStrokes,
+        [page]: currentStrokes.slice(0, -1),
       };
+      return { ...state, annotationStrokes: updatedStrokes };
     }
 
     case 'CLEAR_ALL_STROKES': {
@@ -147,14 +148,15 @@ function sessionReducer(state, action) {
       };
     }
 
-    case 'CLEAR_PAGE_HIGHLIGHTS': {
-      const clearedPage = action.payload;
-      const updatedHl = { ...state.annotationHighlights };
-      delete updatedHl[clearedPage];
-      return {
-        ...state,
-        annotationHighlights: updatedHl,
+    case 'REVERT_LAST_HIGHLIGHT': {
+      const { page } = action.payload;
+      const currentHighlights = state.annotationHighlights[page] || [];
+      if (currentHighlights.length === 0) return state;
+      const updatedHighlights = {
+        ...state.annotationHighlights,
+        [page]: currentHighlights.slice(0, -1),
       };
+      return { ...state, annotationHighlights: updatedHighlights };
     }
 
     case 'GENERATE_ANALYSIS': {
@@ -259,8 +261,8 @@ export function AppContextProvider({ children }) {
     []
   );
 
-  const clearPageStrokes = useCallback(
-    (page) => dispatch({ type: 'CLEAR_PAGE_STROKES', payload: page }),
+  const revertAnnotation = useCallback(
+    (page) => dispatch({ type: 'REVERT_LAST_STROKE', payload: { page } }),
     []
   );
 
@@ -274,8 +276,8 @@ export function AppContextProvider({ children }) {
     []
   );
 
-  const clearPageHighlights = useCallback(
-    (page) => dispatch({ type: 'CLEAR_PAGE_HIGHLIGHTS', payload: page }),
+  const revertHighlight = useCallback(
+    (page) => dispatch({ type: 'REVERT_LAST_HIGHLIGHT', payload: { page } }),
     []
   );
 
@@ -303,10 +305,10 @@ export function AppContextProvider({ children }) {
     acceptError,
     rejectError,
     recordStroke,
-    clearPageStrokes,
+    revertAnnotation,
     clearAllStrokes,
     recordHighlight,
-    clearPageHighlights,
+    revertHighlight,
     generateAnalysis,
     navigate,
     logoutAction,

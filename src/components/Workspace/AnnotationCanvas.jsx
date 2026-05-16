@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext';
 
 export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber, onHighlightModeChange }) {
-  const { state, recordStroke, clearPageStrokes, clearPageHighlights } = useAppContext();
+  const { state, recordStroke, revertAnnotation, revertHighlight } = useAppContext();
   const { annotationStrokes, annotationHighlights } = state;
 
   const canvasRef = useRef(null);
@@ -93,13 +93,12 @@ export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber, on
     currentStrokeRef.current = [];
   }
 
-  function handleClearPageAnnotations() {
-    clearPageStrokes(pageNumber);
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+  function handleRevertAnnotation() {
+    revertAnnotation(pageNumber);
+  }
+
+  function handleRevertHighlight() {
+    revertHighlight(pageNumber);
   }
 
   function handleTogglePen() {
@@ -168,6 +167,14 @@ export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber, on
             ? 'Deactivate Annotation Pen'
             : 'Activate Annotation Pen'}
         </button>
+        {pageStrokeCount > 0 && (
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={handleRevertAnnotation}
+          >
+            Revert Annotation ({pageStrokeCount})
+          </button>
+        )}
         <button
           className={`btn btn-sm ${
             isHighlightModeActive ? 'btn-warning' : 'btn-outline-warning'
@@ -178,20 +185,12 @@ export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber, on
             ? 'Deactivate Highlight Mode'
             : 'Activate Highlight Mode'}
         </button>
-        {pageStrokeCount > 0 && (
-          <button
-            className="btn btn-sm btn-outline-secondary"
-            onClick={handleClearPageAnnotations}
-          >
-            Clear Page Strokes ({pageStrokeCount})
-          </button>
-        )}
         {pageHighlightCount > 0 && (
           <button
             className="btn btn-sm btn-outline-warning"
-            onClick={() => clearPageHighlights(pageNumber)}
+            onClick={handleRevertHighlight}
           >
-            Clear Page Highlights ({pageHighlightCount})
+            Revert Highlight ({pageHighlightCount})
           </button>
         )}
       </div>

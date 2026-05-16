@@ -185,7 +185,7 @@ export default function PdfViewer() {
         div.style.top = `${rect.y}px`;
         div.style.width = `${rect.width}px`;
         div.style.height = `${rect.height}px`;
-        div.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
+        div.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
         div.style.pointerEvents = 'none';
         div.style.zIndex = '1';
         textOverlay.appendChild(div);

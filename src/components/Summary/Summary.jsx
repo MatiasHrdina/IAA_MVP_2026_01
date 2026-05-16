@@ -81,6 +81,11 @@ export default function Summary() {
     (sum, strokes) => sum + strokes.length,
     0
   );
+  const totalHighlightCount = Object.values(annotationHighlights).reduce(
+    (sum, highlights) => sum + highlights.length,
+    0
+  );
+  const totalManualAnnotations = totalStrokeCount + totalHighlightCount;
 
   return (
     <div className="d-flex justify-content-center bg-light" style={{ minHeight: '100vh' }}>
@@ -124,7 +129,7 @@ export default function Summary() {
           <div className="col-md-3">
             <div className="card border-0 shadow-sm text-center p-3">
               <div className="fs-2 fw-bold text-dark">
-                {totalStrokeCount}
+                {totalManualAnnotations}
               </div>
               <small className="text-muted">
                 Manual Annotations

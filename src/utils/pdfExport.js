@@ -160,7 +160,7 @@ export async function exportPdfWithAnnotations({
             y: pdfY,
             width: rectPdfWidth,
             height: rectPdfHeight,
-            color: rgb(1, 1, 0),
+            color: rgb(1, 0, 0),
             opacity: 0.3,
           });
         });
