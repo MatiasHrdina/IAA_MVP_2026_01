@@ -9,15 +9,17 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 export default function PdfViewer() {
-  const { state, setCurrentPage } = useAppContext();
+  const { state, setCurrentPage, recordHighlight } = useAppContext();
   const {
     documentUrl, currentPage, totalPages,
     acceptedErrorRegistry,
+    annotationHighlights,
   } = state;
 
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const textOverlayRef = useRef(null);
+  const [isHighlightModeActive, setIsHighlightModeActive] = useState(false);
 
   const [pdfDocument, setPdfDocument] = useState(null);
   const [pageDimensions, setPageDimensions] = useState({ width: 700, height: 906 });
@@ -60,7 +62,8 @@ export default function PdfViewer() {
 
       const textContent = await page.getTextContent();
       const textOverlay = textOverlayRef.current;
-      textOverlay.innerHTML = '';
+
+      textOverlay.querySelectorAll('.pdf-text-entity').forEach((el) => el.remove());
 
       const displayW = Math.min(viewport.width, 700);
       const coordScale = displayW / viewport.width;
@@ -84,10 +87,14 @@ export default function PdfViewer() {
         span.style.position = 'absolute';
         span.style.left = `${item.transform[4] * SCALE * coordScale}px`;
         span.style.top = `${item.transform[5] * SCALE * coordScale}px`;
-        span.style.fontSize = `${item.height * SCALE * coordScale}px`;
+        span.style.fontSize = `${item.transform[0] * SCALE * coordScale}px`;
         span.style.fontFamily = 'serif';
         span.style.whiteSpace = 'pre';
         span.style.color = 'transparent';
+        span.style.pointerEvents = isHighlightModeActive ? 'auto' : 'none';
+        span.style.userSelect = isHighlightModeActive ? 'text' : 'none';
+        span.style.cursor = isHighlightModeActive ? 'text' : 'default';
+        span.style.zIndex = '2';
         span.className = 'pdf-text-entity';
 
         const text = item.str.toLowerCase();
@@ -111,6 +118,77 @@ export default function PdfViewer() {
   useEffect(() => {
     renderPageContent();
   }, [renderPageContent]);
+
+  useEffect(() => {
+    const textOverlay = textOverlayRef.current;
+    if (!textOverlay) return;
+    textOverlay.querySelectorAll('.pdf-text-entity').forEach((span) => {
+      span.style.pointerEvents = isHighlightModeActive ? 'auto' : 'none';
+      span.style.userSelect = isHighlightModeActive ? 'text' : 'none';
+      span.style.cursor = isHighlightModeActive ? 'text' : 'default';
+    });
+  }, [isHighlightModeActive]);
+
+  useEffect(() => {
+    const textOverlay = textOverlayRef.current;
+    if (!textOverlay) return;
+
+    function handleMouseUp() {
+      if (!isHighlightModeActive) return;
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed || !selection.rangeCount) return;
+
+      const overlayRect = textOverlay.getBoundingClientRect();
+      const rects = [];
+
+      for (let r = 0; r < selection.rangeCount; r++) {
+        const range = selection.getRangeAt(r);
+        const clientRects = range.getClientRects();
+        for (let i = 0; i < clientRects.length; i++) {
+          const cr = clientRects[i];
+          rects.push({
+            x: cr.left - overlayRect.left,
+            y: cr.top - overlayRect.top,
+            width: cr.width,
+            height: cr.height,
+          });
+        }
+      }
+
+      if (rects.length > 0) {
+        recordHighlight({ page: currentPage, rects });
+      }
+
+      selection.removeAllRanges();
+    }
+
+    textOverlay.addEventListener('mouseup', handleMouseUp);
+    return () => textOverlay.removeEventListener('mouseup', handleMouseUp);
+  }, [isHighlightModeActive, currentPage, recordHighlight]);
+
+  useEffect(() => {
+    const textOverlay = textOverlayRef.current;
+    if (!textOverlay) return;
+
+    textOverlay.querySelectorAll('.user-highlight').forEach((el) => el.remove());
+
+    const pageHighlights = annotationHighlights[currentPage] || [];
+    pageHighlights.forEach((hl) => {
+      hl.rects.forEach((rect) => {
+        const div = document.createElement('div');
+        div.className = 'user-highlight';
+        div.style.position = 'absolute';
+        div.style.left = `${rect.x}px`;
+        div.style.top = `${rect.y}px`;
+        div.style.width = `${rect.width}px`;
+        div.style.height = `${rect.height}px`;
+        div.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
+        div.style.pointerEvents = 'none';
+        div.style.zIndex = '1';
+        textOverlay.appendChild(div);
+      });
+    });
+  }, [annotationHighlights, currentPage]);
 
   function handlePageNavigation(delta) {
     const target = currentPage + delta;
@@ -172,6 +250,7 @@ export default function PdfViewer() {
             pageWidth={displayWidth}
             pageHeight={displayHeight}
             pageNumber={currentPage}
+            onHighlightModeChange={setIsHighlightModeActive}
           />
         </div>
       </div>

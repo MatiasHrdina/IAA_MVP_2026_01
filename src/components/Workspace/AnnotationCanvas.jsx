@@ -1,16 +1,22 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext';
 
-export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber }) {
-  const { state, recordStroke, clearPageStrokes } = useAppContext();
-  const { annotationStrokes } = state;
+export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber, onHighlightModeChange }) {
+  const { state, recordStroke, clearPageStrokes, clearPageHighlights } = useAppContext();
+  const { annotationStrokes, annotationHighlights } = state;
 
   const canvasRef = useRef(null);
   const [isDrawingModeActive, setIsDrawingModeActive] = useState(false);
+  const [isHighlightModeActive, setIsHighlightModeActive] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const currentStrokeRef = useRef([]);
 
   const currentPageStrokes = annotationStrokes[pageNumber] || [];
+  const pageHighlightCount = (annotationHighlights[pageNumber] || []).length;
+
+  useEffect(() => {
+    onHighlightModeChange?.(isHighlightModeActive);
+  }, [isHighlightModeActive, onHighlightModeChange]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -96,6 +102,24 @@ export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber }) 
     }
   }
 
+  function handleTogglePen() {
+    if (isDrawingModeActive) {
+      setIsDrawingModeActive(false);
+    } else {
+      setIsDrawingModeActive(true);
+      setIsHighlightModeActive(false);
+    }
+  }
+
+  function handleToggleHighlight() {
+    if (isHighlightModeActive) {
+      setIsHighlightModeActive(false);
+    } else {
+      setIsHighlightModeActive(true);
+      setIsDrawingModeActive(false);
+    }
+  }
+
   const pageStrokeCount = currentPageStrokes.length;
 
   return (
@@ -122,7 +146,7 @@ export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber }) 
             position: 'absolute',
             top: 0,
             left: 0,
-            cursor: isDrawingModeActive ? 'crosshair' : 'default',
+            cursor: isDrawingModeActive ? 'crosshair' : (isHighlightModeActive ? 'text' : 'default'),
             pointerEvents: isDrawingModeActive ? 'auto' : 'none',
             zIndex: 10,
           }}
@@ -138,11 +162,21 @@ export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber }) 
           className={`btn btn-sm ${
             isDrawingModeActive ? 'btn-danger' : 'btn-outline-danger'
           }`}
-          onClick={() => setIsDrawingModeActive((prev) => !prev)}
+          onClick={handleTogglePen}
         >
           {isDrawingModeActive
             ? 'Deactivate Annotation Pen'
             : 'Activate Annotation Pen'}
+        </button>
+        <button
+          className={`btn btn-sm ${
+            isHighlightModeActive ? 'btn-warning' : 'btn-outline-warning'
+          }`}
+          onClick={handleToggleHighlight}
+        >
+          {isHighlightModeActive
+            ? 'Deactivate Highlight Mode'
+            : 'Activate Highlight Mode'}
         </button>
         {pageStrokeCount > 0 && (
           <button
@@ -150,6 +184,14 @@ export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber }) 
             onClick={handleClearPageAnnotations}
           >
             Clear Page Strokes ({pageStrokeCount})
+          </button>
+        )}
+        {pageHighlightCount > 0 && (
+          <button
+            className="btn btn-sm btn-outline-warning"
+            onClick={() => clearPageHighlights(pageNumber)}
+          >
+            Clear Page Highlights ({pageHighlightCount})
           </button>
         )}
       </div>

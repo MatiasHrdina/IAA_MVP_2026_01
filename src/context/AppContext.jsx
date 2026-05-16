@@ -22,6 +22,7 @@ const initialSessionState = {
   analysisGeneratedAt: null,
 
   annotationStrokes: {},
+  annotationHighlights: {},
 };
 
 function deserializeState(persisted) {
@@ -54,6 +55,7 @@ function sessionReducer(state, action) {
         acceptedErrorRegistry: [],
         rejectedErrorRegistry: [],
         annotationStrokes: {},
+        annotationHighlights: {},
         performanceAnalysis: null,
         currentScreen: 'workspace',
       };
@@ -133,6 +135,28 @@ function sessionReducer(state, action) {
       };
     }
 
+    case 'RECORD_HIGHLIGHT': {
+      const { page: hlPage, rects } = action.payload;
+      const pageHighlights = state.annotationHighlights[hlPage] || [];
+      return {
+        ...state,
+        annotationHighlights: {
+          ...state.annotationHighlights,
+          [hlPage]: [...pageHighlights, { rects, page: hlPage }],
+        },
+      };
+    }
+
+    case 'CLEAR_PAGE_HIGHLIGHTS': {
+      const clearedPage = action.payload;
+      const updatedHl = { ...state.annotationHighlights };
+      delete updatedHl[clearedPage];
+      return {
+        ...state,
+        annotationHighlights: updatedHl,
+      };
+    }
+
     case 'GENERATE_ANALYSIS': {
       return {
         ...state,
@@ -176,6 +200,7 @@ function sessionPersistenceMiddleware(reducer) {
         performanceAnalysis: nextState.performanceAnalysis,
         analysisGeneratedAt: nextState.analysisGeneratedAt,
         annotationStrokes: nextState.annotationStrokes,
+        annotationHighlights: nextState.annotationHighlights,
       });
       sessionStorage.setItem(STORAGE_KEY, serialized);
     } catch {
@@ -244,6 +269,16 @@ export function AppContextProvider({ children }) {
     []
   );
 
+  const recordHighlight = useCallback(
+    (highlight) => dispatch({ type: 'RECORD_HIGHLIGHT', payload: highlight }),
+    []
+  );
+
+  const clearPageHighlights = useCallback(
+    (page) => dispatch({ type: 'CLEAR_PAGE_HIGHLIGHTS', payload: page }),
+    []
+  );
+
   const generateAnalysis = useCallback(
     (payload) => dispatch({ type: 'GENERATE_ANALYSIS', payload }),
     []
@@ -270,6 +305,8 @@ export function AppContextProvider({ children }) {
     recordStroke,
     clearPageStrokes,
     clearAllStrokes,
+    recordHighlight,
+    clearPageHighlights,
     generateAnalysis,
     navigate,
     logoutAction,
