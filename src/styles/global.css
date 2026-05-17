@@ -85,3 +85,107 @@ pre {
 ::-webkit-scrollbar-thumb:hover {
   background-color: rgba(33, 37, 41, 0.4);
 }
+
+/* Error Stats Panel */
+.stats-panel {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s ease;
+}
+
+.stats-panel-collapsed {
+  width: 44px;
+}
+
+.stats-panel-collapsed .stats-toggle {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  margin: 8px auto;
+  padding: 8px 4px;
+}
+
+.stats-scroll {
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.stat-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 6px 12px;
+  flex: 1;
+  font-size: 0.75rem;
+}
+
+.stat-chip strong {
+  font-size: 1rem;
+}
+
+.stats-bar-track {
+  width: 100%;
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.stats-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.importance-alta .stats-bar-fill,
+.stats-bar-fill.importance-alta {
+  background: #dc3545;
+}
+
+.importance-media .stats-bar-fill,
+.stats-bar-fill.importance-media {
+  background: #fd7e14;
+}
+
+.manual-entry {
+  font-size: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.manual-entry p {
+  line-height: 1.3;
+}
+
+/* Annotation toolbar improvements */
+.annotation-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.annotation-toolbar button {
+  transition: all 0.15s ease;
+}
+
+.annotation-toolbar button:hover {
+  transform: scale(1.05);
+}
+
+/* Smooth transitions for mode toggles */
+.mode-transition {
+  transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+/* Card subtle hover effect */
+.card-hover:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s ease;
+}

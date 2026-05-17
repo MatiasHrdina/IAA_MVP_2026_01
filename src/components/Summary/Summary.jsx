@@ -12,6 +12,7 @@ export default function Summary() {
 
   const {
     acceptedErrorRegistry,
+    rejectedErrorRegistry,
     performanceAnalysis,
     analysisGeneratedAt,
     documentFile,
@@ -29,7 +30,12 @@ export default function Summary() {
   async function handleGenerateAnalysis() {
     setIsGeneratingAnalysis(true);
     try {
-      const result = await simulatePerformanceAnalysis(acceptedErrorRegistry);
+      const result = await simulatePerformanceAnalysis(
+        acceptedErrorRegistry,
+        state.rejectedErrorRegistry,
+        annotationStrokes,
+        annotationHighlights
+      );
       generateAnalysis({
         analysis: result.analysis,
         generatedAt: result.generatedAt,

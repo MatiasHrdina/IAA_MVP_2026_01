@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { pdfjs } from 'react-pdf';
 import { useAppContext } from '../../context/AppContext';
 import { simulatePromptSubmission } from '../../mock/api';
 import ErrorList from './ErrorList';
@@ -13,30 +14,61 @@ export default function ControlPanel() {
     setCurrentPage,
   } = useAppContext();
 
-  const { currentPage, totalPages, errorCorpus } = state;
+  const { currentPage, totalPages, errorCorpus, documentUrl } = state;
 
   const [promptQuery, setPromptQuery] = useState('');
   const [isSubmittingPrompt, setIsSubmittingPrompt] = useState(false);
   const [promptFeedback, setPromptFeedback] = useState('');
+  const pageTextsRef = useRef({});
 
   const pageErrors = errorCorpus[currentPage] || [];
 
-  function handlePromptSubmission() {
+  useEffect(() => {
+    if (!documentUrl) return;
+
+    const pdfLoad = async () => {
+      try {
+        const doc = await pdfjs.getDocument(documentUrl).promise;
+        const texts = {};
+        const numPages = Math.min(doc.numPages, 50);
+        for (let i = 1; i <= numPages; i++) {
+          const page = await doc.getPage(i);
+          const content = await page.getTextContent();
+          texts[i] = content.items.map((item) => item.str).join(' ');
+        }
+        pageTextsRef.current = texts;
+      } catch {
+        /* text extraction error */
+      }
+    };
+
+    pdfLoad();
+  }, [documentUrl]);
+
+  const handlePromptSubmission = useCallback(async () => {
     if (!promptQuery.trim()) return;
     setIsSubmittingPrompt(true);
     setPromptFeedback('');
 
-    simulatePromptSubmission(promptQuery, currentPage).then((response) => {
+    try {
+      const response = await simulatePromptSubmission(
+        promptQuery,
+        currentPage,
+        pageTextsRef.current
+      );
       if (response.success && response.errors.length > 0) {
         registerErrors({ page: currentPage, errors: response.errors });
         setPromptFeedback(
           `Analysis complete. ${response.errors.length} pattern(s) detected.`
         );
       }
-      setIsSubmittingPrompt(false);
-      setPromptQuery('');
-    });
-  }
+    } catch {
+      setPromptFeedback('Error during analysis. Please try again.');
+    }
+
+    setIsSubmittingPrompt(false);
+    setPromptQuery('');
+  }, [promptQuery, currentPage, registerErrors]);
 
   function handleAccept(error) {
     acceptError(currentPage, error);

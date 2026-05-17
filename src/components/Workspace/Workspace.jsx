@@ -1,6 +1,7 @@
 import { useAppContext } from '../../context/AppContext';
 import ControlPanel from './ControlPanel';
 import PdfViewer from './PdfViewer';
+import ErrorStatsPanel from './ErrorStatsPanel';
 
 export default function Workspace() {
   const { state, navigate } = useAppContext();
@@ -54,8 +55,11 @@ export default function Workspace() {
         <div className="border-end bg-white" style={{ width: '38%', minWidth: '320px' }}>
           <ControlPanel />
         </div>
-        <div className="flex-grow-1">
-          <PdfViewer />
+        <div className="flex-grow-1 d-flex" style={{ overflow: 'hidden' }}>
+          <div className="flex-grow-1" style={{ minWidth: 0 }}>
+            <PdfViewer />
+          </div>
+          <ErrorStatsPanel />
         </div>
       </div>
     </div>

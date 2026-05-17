@@ -106,6 +106,29 @@ function sessionReducer(state, action) {
       };
     }
 
+    case 'ADD_MANUAL_ERROR': {
+      const error = action.payload;
+      const errorWithMeta = {
+        ...error,
+        id: Date.now() + Math.random(),
+        status: 'accepted',
+        source: 'manual',
+      };
+      const page = error.page || state.currentPage;
+      return {
+        ...state,
+        acceptedErrorRegistry: [...state.acceptedErrorRegistry, errorWithMeta],
+      };
+    }
+
+    case 'REMOVE_ACCEPTED_ERROR': {
+      const { errorId } = action.payload;
+      return {
+        ...state,
+        acceptedErrorRegistry: state.acceptedErrorRegistry.filter((e) => e.id !== errorId),
+      };
+    }
+
     case 'RECORD_STROKE': {
       const { page, points, timestamp } = action.payload;
       const pageStrokes = state.annotationStrokes[page] || [];
@@ -256,6 +279,16 @@ export function AppContextProvider({ children }) {
     []
   );
 
+  const addManualError = useCallback(
+    (error) => dispatch({ type: 'ADD_MANUAL_ERROR', payload: error }),
+    []
+  );
+
+  const removeAcceptedError = useCallback(
+    (errorId) => dispatch({ type: 'REMOVE_ACCEPTED_ERROR', payload: { errorId } }),
+    []
+  );
+
   const recordStroke = useCallback(
     (stroke) => dispatch({ type: 'RECORD_STROKE', payload: stroke }),
     []
@@ -304,6 +337,8 @@ export function AppContextProvider({ children }) {
     registerErrors,
     acceptError,
     rejectError,
+    addManualError,
+    removeAcceptedError,
     recordStroke,
     revertAnnotation,
     clearAllStrokes,
