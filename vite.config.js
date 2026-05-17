@@ -9,16 +9,13 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       host: true,
       proxy: {
-        '/hf-api': {
-          target: 'https://api-inference.huggingface.co',
+        '/groq-api': {
+          target: 'https://api.groq.com',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/hf-api/, ''),
+          rewrite: (path) => path.replace(/^\/groq-api/, '/openai'),
           configure: (proxy) => {
             proxy.on('proxyReq', (proxyReq) => {
-              if (env.HF_TOKEN) {
-                proxyReq.setHeader('Authorization', `Bearer ${env.HF_TOKEN}`);
-              }
-              proxyReq.removeHeader('Origin');
+              proxyReq.setHeader('Authorization', `Bearer ${env.GROQ_API_KEY || ''}`);
             });
           },
         },

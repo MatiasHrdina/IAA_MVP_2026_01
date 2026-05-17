@@ -19,15 +19,16 @@
 - Wired into `Workspace.jsx` layout next to PdfViewer
 - CSS styles added to `global.css` (stats-panel, stat-chip, stats-bar, etc.)
 
-## ✅ 3. AI Assistance with Free API (Hugging Face)
-- Created `src/services/aiService.js` with:
-  - `detectErrors()` — builds prompt with prev/current/next page context + rubric
-  - `generatePerformanceAnalysis()` — builds comprehensive analysis prompt
-  - `queryHuggingFace()` — calls Mistral-7B-Instruct via HF Inference API
-  - Handles JSON parsing from AI responses
-- `mock/api.js` updated: calls real AI if `VITE_HF_TOKEN` is set, falls back to mock
-- `ControlPanel.jsx` extracts PDF page text via pdfjs for AI context
-- `.env.example` created for configuration
+## ✅ 3. AI Assistance with Free API (Groq)
+- `src/services/aiService.js` uses **Groq API** (OpenAI-compatible, Llama 3 70B):
+  - `detectErrors()` — system instruction + user prompt with prev/current/next page context + rubric
+  - `generatePerformanceAnalysis()` — comprehensive analysis prompt
+  - `queryGroq()` — calls Groq via Vite proxy (key stays server-side)
+  - JSON mode (`response_format: { type: 'json_object' }`) for reliable error parsing
+  - No regex JSON extraction needed — Groq outputs valid JSON directly
+- `mock/api.js` falls back to mock data if Groq API call fails or key is not set
+- Vite proxy `/groq-api` → `https://api.groq.com/openai`
+- `.env` requires `GROQ_API_KEY` (get free at: https://console.groq.com/keys)
 
 ## 4. Visual Improvements — PENDING
 - Polish the UI: better typography, spacing, color consistency
@@ -46,9 +47,9 @@
 
 ## Setup
 ```bash
-# 1. Get a free Hugging Face token: https://huggingface.co/settings/tokens
+# 1. Get a free Groq API key: https://console.groq.com/keys
 # 2. Create .env file:
 cp .env.example .env
-# 3. Add your token to .env:
-VITE_HF_TOKEN=hf_your_token_here
+# 3. Add your key to .env:
+GROQ_API_KEY=your_groq_api_key_here
 ```
