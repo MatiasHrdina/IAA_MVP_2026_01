@@ -30,7 +30,7 @@
 - Vite proxy `/groq-api` → `https://api.groq.com/openai`
 - `.env` requires `GROQ_API_KEY` (get free at: https://console.groq.com/keys)
 
-## 4. Visual Improvements — PENDING
+## ⏳ 4. Visual Improvements — PENDING
 - Polish the UI: better typography, spacing, color consistency
 - Improve the PDF viewer layout (zoom controls, better scroll behavior)
 - Refine the floating annotation toolbar (icons, tooltips, grouping)
@@ -45,11 +45,16 @@
 - `Summary.jsx` now passes all data to `simulatePerformanceAnalysis`
 - AI service produces structured Spanish evaluation report
 
-## Setup
-```bash
-# 1. Get a free Groq API key: https://console.groq.com/keys
-# 2. Create .env file:
-cp .env.example .env
-# 3. Add your key to .env:
-GROQ_API_KEY=your_groq_api_key_here
-```
+## ✅ 6. Botón de Análisis Automático (Pre-defined Prompt)
+- Text input + Submit button reemplazado por un botón "Analizar" en `ControlPanel.jsx`
+- `mock/api.js` agrega `simulateAutoAnalysis()` con prompt predeterminado en español que cubre las 7 categorías de la rúbrica
+- `mockAutoAnalysis()` retorna 1 error por categoría como fallback
+- Sin cambios en `aiService.js` — reutiliza `detectErrors()` con el prompt prefedinido
+
+## ✅ 7. Resaltado Automático de Errores Aceptados en el PDF
+- `PdfViewer.jsx` resalta con color según categoría (mapa `CATEGORY_COLORS`)
+- Text matching mejorado: verifica ambas direcciones (item contiene error / error contiene item)
+- Al aceptar un error, se dispara `recordHighlight()` para conectarlo con el sistema de anotaciones
+- `pdfExport.js` exporta con colores por categoría tanto en annotationHighlights como en text-matching
+
+---

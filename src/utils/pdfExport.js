@@ -6,6 +6,20 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url
 ).toString();
 
+const CATEGORY_COLORS = {
+  cientifica: { r: 74/255, g: 144/255, b: 217/255 },
+  coherencia: { r: 39/255, g: 174/255, b: 96/255 },
+  cohesion: { r: 155/255, g: 89/255, b: 182/255 },
+  resultados: { r: 26/255, g: 188/255, b: 156/255 },
+  referencias: { r: 230/255, g: 126/255, b: 34/255 },
+  gramatica: { r: 211/255, g: 84/255, b: 0/255 },
+  ortografia: { r: 233/255, g: 30/255, b: 99/255 },
+};
+
+function getCategoryPdfColor(categoryId) {
+  return CATEGORY_COLORS[categoryId] || { r: 1, g: 0.9, b: 0.6 };
+}
+
 function canvasToPdfCoordinate(canvasPoint, canvasWidth, canvasHeight, pdfPage) {
   const pdfWidth = pdfPage.getWidth();
   const pdfHeight = pdfPage.getHeight();
@@ -62,19 +76,21 @@ function findTextPositions(textContent, searchText) {
   return positions;
 }
 
-function drawAcceptedErrorHighlight(pdfPage, pos) {
+function drawAcceptedErrorHighlight(pdfPage, pos, categoryId) {
   const rectX = pos.x;
   const rectY = pos.baselineY - pos.height;
   const rectW = pos.width;
   const rectH = pos.height;
+
+  const color = getCategoryPdfColor(categoryId);
 
   pdfPage.drawRectangle({
     x: rectX,
     y: rectY,
     width: rectW,
     height: rectH,
-    color: rgb(1, 0.9, 0.6),
-    opacity: 0.4,
+    color: rgb(color.r, color.g, color.b),
+    opacity: 0.35,
   });
 
   pdfPage.drawRectangle({
@@ -82,8 +98,8 @@ function drawAcceptedErrorHighlight(pdfPage, pos) {
     y: rectY - 1.5,
     width: rectW,
     height: 2,
-    color: rgb(0.86, 0.15, 0.15),
-    opacity: 0.7,
+    color: rgb(color.r, color.g, color.b),
+    opacity: 0.8,
   });
 }
 
@@ -95,7 +111,7 @@ async function highlightAcceptedErrorsOnPage(pdfPage, pdfJsPage, textsToHighligh
     const viewport = pdfJsPage.getViewport({ scale: 1 });
     const pdfScale = pdfPageWidth / viewport.width;
 
-    for (const { text } of textsToHighlight) {
+    for (const { text, category } of textsToHighlight) {
       const textPositions = findTextPositions(textContent, text);
       for (const pos of textPositions) {
         const scaledPos = {
@@ -104,7 +120,7 @@ async function highlightAcceptedErrorsOnPage(pdfPage, pdfJsPage, textsToHighligh
           width: pos.width * pdfScale,
           height: pos.height * pdfScale,
         };
-        drawAcceptedErrorHighlight(pdfPage, scaledPos);
+        drawAcceptedErrorHighlight(pdfPage, scaledPos, category);
       }
     }
   } catch {
@@ -155,12 +171,16 @@ export async function exportPdfWithAnnotations({
           const pdfX = rect.x * scaleX;
           const pdfY = pdfPageHeight - (rect.y * scaleY) - rectPdfHeight;
 
+          const color = rect.category
+            ? getCategoryPdfColor(rect.category)
+            : { r: 1, g: 0, b: 0 };
+
           pdfPage.drawRectangle({
             x: pdfX,
             y: pdfY,
             width: rectPdfWidth,
             height: rectPdfHeight,
-            color: rgb(1, 0, 0),
+            color: rgb(color.r, color.g, color.b),
             opacity: 0.3,
           });
         });
@@ -174,7 +194,7 @@ export async function exportPdfWithAnnotations({
     );
     await highlightAcceptedErrorsOnPage(
       pdfPage, pdfJsPage,
-      pageAcceptedErrors.map((e) => ({ text: e.original_text })),
+      pageAcceptedErrors.map((e) => ({ text: e.original_text, category: e.category })),
       pdfPageWidth
     );
   }

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { pdfjs } from 'react-pdf';
 import { useAppContext } from '../../context/AppContext';
-import { simulatePromptSubmission } from '../../mock/api';
+import { simulateAutoAnalysis } from '../../mock/api';
 import ErrorList from './ErrorList';
 import Pagination from './Pagination';
 
@@ -16,9 +16,8 @@ export default function ControlPanel() {
 
   const { currentPage, totalPages, errorCorpus, documentUrl } = state;
 
-  const [promptQuery, setPromptQuery] = useState('');
-  const [isSubmittingPrompt, setIsSubmittingPrompt] = useState(false);
-  const [promptFeedback, setPromptFeedback] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisFeedback, setAnalysisFeedback] = useState('');
   const pageTextsRef = useRef({});
 
   const pageErrors = errorCorpus[currentPage] || [];
@@ -45,30 +44,27 @@ export default function ControlPanel() {
     pdfLoad();
   }, [documentUrl]);
 
-  const handlePromptSubmission = useCallback(async () => {
-    if (!promptQuery.trim()) return;
-    setIsSubmittingPrompt(true);
-    setPromptFeedback('');
+  const handleAutoAnalysis = useCallback(async () => {
+    setIsAnalyzing(true);
+    setAnalysisFeedback('');
 
     try {
-      const response = await simulatePromptSubmission(
-        promptQuery,
+      const response = await simulateAutoAnalysis(
         currentPage,
         pageTextsRef.current
       );
       if (response.success && response.errors.length > 0) {
         registerErrors({ page: currentPage, errors: response.errors });
-        setPromptFeedback(
-          `Analysis complete. ${response.errors.length} pattern(s) detected.`
+        setAnalysisFeedback(
+          `Analisis completado. ${response.errors.length} error(es) detectado(s).`
         );
       }
     } catch {
-      setPromptFeedback('Error during analysis. Please try again.');
+      setAnalysisFeedback('Error durante el analisis. Intente de nuevo.');
     }
 
-    setIsSubmittingPrompt(false);
-    setPromptQuery('');
-  }, [promptQuery, currentPage, registerErrors]);
+    setIsAnalyzing(false);
+  }, [currentPage, registerErrors]);
 
   function handleAccept(error) {
     acceptError(currentPage, error);
@@ -82,28 +78,18 @@ export default function ControlPanel() {
     <div className="d-flex flex-column h-100">
       <div className="flex-grow-1" style={{ overflow: 'hidden' }}>
         <div className="p-3 border-bottom">
-          <label className="form-label small fw-semibold mb-1">
-            Linguistic Analysis Query
-          </label>
-          <div className="input-group input-group-sm">
-            <input
-              type="text"
-              className="form-control"
-              placeholder='e.g., "Check grammar and stylistic issues"'
-              value={promptQuery}
-              onChange={(e) => setPromptQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handlePromptSubmission()}
-            />
-            <button
-              className="btn btn-dark"
-              onClick={handlePromptSubmission}
-              disabled={isSubmittingPrompt || !promptQuery.trim()}
-            >
-              {isSubmittingPrompt ? 'Analyzing...' : 'Submit'}
-            </button>
+          <button
+            className="btn btn-dark w-100"
+            onClick={handleAutoAnalysis}
+            disabled={isAnalyzing}
+          >
+            {isAnalyzing ? 'Analizando...' : 'Analizar'}
+          </button>
+          <div className="text-center small text-muted mt-1">
+            Analiza la pagina actual en las 7 categorias de la rubrica
           </div>
-          {promptFeedback && (
-            <div className="small text-muted mt-1">{promptFeedback}</div>
+          {analysisFeedback && (
+            <div className="small text-muted mt-1">{analysisFeedback}</div>
           )}
         </div>
 
@@ -113,8 +99,8 @@ export default function ControlPanel() {
           </h6>
           {pageErrors.length === 0 ? (
             <p className="small text-muted text-center py-4">
-              No errors have been detected on this page. Submit a query or
-              navigate to another page.
+              No se han detectado errores en esta pagina. Presione
+              "Analizar" para ejecutar la deteccion automatica.
             </p>
           ) : (
             <ErrorList

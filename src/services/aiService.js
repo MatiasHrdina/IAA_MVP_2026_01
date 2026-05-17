@@ -18,15 +18,23 @@ Cada error debe clasificarse en una de estas categorías: ${RUBRIC_CATEGORY_IDS.
 Severidades: "minor" (leve), "moderate" (moderado), "major" (grave).`;
 
 function buildErrorDetectionPrompt(currentText, prevText, nextText, userQuery) {
-  return `CONTEXTO DEL DOCUMENTO:
-[Página anterior]: ${prevText || '(No disponible)'}
-[Página actual]: ${currentText}
-[Página siguiente]: ${nextText || '(No disponible)'}
+  const sections = [];
+  if (prevText) {
+    sections.push(`--- INICIO PÁGINA ANTERIOR (contexto) ---\n${prevText}\n--- FIN PÁGINA ANTERIOR ---`);
+  }
+  sections.push(`--- INICIO PÁGINA ACTUAL (analizar esta página) ---\n${currentText}\n--- FIN PÁGINA ACTUAL ---`);
+  if (nextText) {
+    sections.push(`--- INICIO PÁGINA SIGUIENTE (contexto) ---\n${nextText}\n--- FIN PÁGINA SIGUIENTE ---`);
+  }
+
+  return `TEXTO DEL DOCUMENTO:
+${sections.join('\n\n')}
 
 INSTRUCCIÓN DEL USUARIO:
 ${userQuery}
 
-Analiza el texto de la página actual según la rúbrica y detecta errores.
+Analiza ÚNICAMENTE el texto de la sección "PÁGINA ACTUAL" según la rúbrica y detecta errores.
+Las secciones "PÁGINA ANTERIOR" y "PÁGINA SIGUIENTE" se incluyen solo como contexto para que puedas ver párrafos completos que continúan entre páginas; NO las analices.
 Responde ÚNICAMENTE con un array JSON. Cada objeto debe tener esta estructura exacta:
 {
   "error": "Descripción del error",

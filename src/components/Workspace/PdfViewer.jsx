@@ -8,6 +8,20 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url
 ).toString();
 
+const CATEGORY_COLORS = {
+  cientifica: { bg: 'rgba(74, 144, 217, 0.35)', border: '#4A90D9' },
+  coherencia: { bg: 'rgba(39, 174, 96, 0.35)', border: '#27AE60' },
+  cohesion: { bg: 'rgba(155, 89, 182, 0.35)', border: '#9B59B6' },
+  resultados: { bg: 'rgba(26, 188, 156, 0.35)', border: '#1ABC9C' },
+  referencias: { bg: 'rgba(230, 126, 34, 0.35)', border: '#E67E22' },
+  gramatica: { bg: 'rgba(211, 84, 0, 0.35)', border: '#D35400' },
+  ortografia: { bg: 'rgba(233, 30, 99, 0.35)', border: '#E91E63' },
+};
+
+function getCategoryColor(categoryId) {
+  return CATEGORY_COLORS[categoryId] || { bg: 'rgba(255, 230, 0, 0.5)', border: 'rgba(255, 166, 0, 0.8)' };
+}
+
 export default function PdfViewer() {
   const { state, setCurrentPage, recordHighlight } = useAppContext();
   const {
@@ -19,6 +33,7 @@ export default function PdfViewer() {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const textOverlayRef = useRef(null);
+  const recordedErrorHighlightsRef = useRef(new Set());
   const [isHighlightModeActive, setIsHighlightModeActive] = useState(false);
 
   const [pdfDocument, setPdfDocument] = useState(null);
@@ -63,7 +78,7 @@ export default function PdfViewer() {
       const textContent = await page.getTextContent();
       const textOverlay = textOverlayRef.current;
 
-      textOverlay.querySelectorAll('.pdf-text-entity').forEach((el) => el.remove());
+      textOverlay.querySelectorAll('.pdf-text-entity, .accepted-error-highlight').forEach((el) => el.remove());
 
       const displayW = Math.min(viewport.width, 700);
       const coordScale = displayW / viewport.width;
@@ -77,11 +92,12 @@ export default function PdfViewer() {
       textOverlay.style.overflow = 'hidden';
       textOverlay.style.zIndex = '5';
 
-      const acceptedTexts = acceptedErrorRegistry
-        .filter((e) => e.original_text)
-        .map((e) => e.original_text.toLowerCase());
+      const spansWithErrors = [];
+      const spanMeta = [];
+      let concatString = '';
+      const matchedSpans = new Set();
 
-      textContent.items.forEach((item) => {
+      textContent.items.forEach((item, index) => {
         const span = document.createElement('span');
         span.textContent = item.str;
         span.style.position = 'absolute';
@@ -101,22 +117,85 @@ export default function PdfViewer() {
         span.style.zIndex = '2';
         span.style.whiteSpace = 'pre';
 
-        const text = item.str.toLowerCase();
-
-        const isAcceptedError = acceptedTexts.some((at) => text.includes(at));
-        if (isAcceptedError) {
-          span.style.backgroundColor = 'rgba(255, 230, 0, 0.5)';
-          span.style.borderBottom = '2px solid rgba(255, 166, 0, 0.8)';
-        }
+        if (index > 0) concatString += ' ';
+        const startIndex = concatString.length;
+        concatString += item.str;
+        spanMeta.push({ span, startIndex, endIndex: concatString.length });
 
         textOverlay.appendChild(span);
       });
+
+      const concatLower = concatString.toLowerCase();
+
+      acceptedErrorRegistry.forEach((error) => {
+        if (error.page !== currentPage) return;
+        if (!error.original_text) return;
+
+        const errLower = error.original_text.toLowerCase();
+        let searchFrom = 0;
+
+        while (true) {
+          const matchIndex = concatLower.indexOf(errLower, searchFrom);
+          if (matchIndex === -1) break;
+          const matchEnd = matchIndex + errLower.length;
+
+          const colors = getCategoryColor(error.category);
+
+          spanMeta.forEach(({ span, startIndex, endIndex }) => {
+            if (startIndex < matchEnd && endIndex > matchIndex && !matchedSpans.has(span)) {
+              matchedSpans.add(span);
+              span.style.backgroundColor = colors.bg;
+              span.style.borderBottom = `2px solid ${colors.border}`;
+              span.dataset.errorId = error.id;
+              span.dataset.category = error.category || '';
+              spansWithErrors.push({ span, errorId: error.id });
+            }
+          });
+
+          searchFrom = matchIndex + 1;
+        }
+      });
+
+      const errorGroups = {};
+      spansWithErrors.forEach(({ span, errorId }) => {
+        if (!errorGroups[errorId]) errorGroups[errorId] = [];
+        errorGroups[errorId].push(span);
+      });
+
+      const newHighlights = [];
+      Object.entries(errorGroups).forEach(([errorId, spans]) => {
+        const id = Number(errorId);
+        if (recordedErrorHighlightsRef.current.has(id)) return;
+        recordedErrorHighlightsRef.current.add(id);
+
+        const rects = spans.map((s) => {
+          const rect = s.getBoundingClientRect();
+          const overlayRect = textOverlay.getBoundingClientRect();
+          return {
+            x: rect.left - overlayRect.left,
+            y: rect.top - overlayRect.top,
+            width: rect.width,
+            height: rect.height,
+            category: s.dataset.category,
+          };
+        });
+
+        const error = acceptedErrorRegistry.find((e) => e.id === id);
+        if (error && error.page === currentPage) {
+          newHighlights.push({ id, rects });
+        }
+      });
+
+      if (newHighlights.length > 0) {
+        const allRects = newHighlights.flatMap((h) => h.rects);
+        recordHighlight({ page: currentPage, rects: allRects });
+      }
     } catch {
       /* rendering error */
     }
 
     setIsLoading(false);
-  }, [pdfDocument, currentPage, acceptedErrorRegistry]);
+  }, [pdfDocument, currentPage, acceptedErrorRegistry, recordHighlight]);
 
   useEffect(() => {
     renderPageContent();
@@ -185,9 +264,15 @@ export default function PdfViewer() {
         div.style.top = `${rect.y}px`;
         div.style.width = `${rect.width}px`;
         div.style.height = `${rect.height}px`;
-        div.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
         div.style.pointerEvents = 'none';
         div.style.zIndex = '1';
+        if (rect.category) {
+          const colors = getCategoryColor(rect.category);
+          div.style.backgroundColor = colors.bg;
+          div.style.borderBottom = `2px solid ${colors.border}`;
+        } else {
+          div.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+        }
         textOverlay.appendChild(div);
       });
     });
