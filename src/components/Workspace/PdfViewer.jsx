@@ -125,21 +125,26 @@ export default function PdfViewer() {
         textOverlay.appendChild(span);
       });
 
-      const concatLower = concatString.toLowerCase();
+      function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      }
+
+      function buildFlexibleRegex(text) {
+        const escaped = escapeRegExp(text);
+        return new RegExp(escaped.replace(/\s+/g, '\\s+'), 'gi');
+      }
 
       acceptedErrorRegistry.forEach((error) => {
         if (error.page !== currentPage) return;
         if (!error.original_text) return;
 
-        const errLower = error.original_text.toLowerCase();
-        let searchFrom = 0;
+        const searchRegex = buildFlexibleRegex(error.original_text);
+        const colors = getCategoryColor(error.category);
+        let match;
 
-        while (true) {
-          const matchIndex = concatLower.indexOf(errLower, searchFrom);
-          if (matchIndex === -1) break;
-          const matchEnd = matchIndex + errLower.length;
-
-          const colors = getCategoryColor(error.category);
+        while ((match = searchRegex.exec(concatString)) !== null) {
+          const matchIndex = match.index;
+          const matchEnd = matchIndex + match[0].length;
 
           spanMeta.forEach(({ span, startIndex, endIndex }) => {
             if (startIndex < matchEnd && endIndex > matchIndex && !matchedSpans.has(span)) {
@@ -151,8 +156,6 @@ export default function PdfViewer() {
               spansWithErrors.push({ span, errorId: error.id });
             }
           });
-
-          searchFrom = matchIndex + 1;
         }
       });
 

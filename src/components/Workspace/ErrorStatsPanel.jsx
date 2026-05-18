@@ -7,7 +7,7 @@ export default function ErrorStatsPanel() {
   const { acceptedErrorRegistry, currentPage, annotationStrokes, annotationHighlights } = state;
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [manualCategory, setManualCategory] = useState(RUBRIC_CATEGORIES[0].id);
-  const [manualLevel, setManualLevel] = useState('aceptable');
+  const [manualSeverity, setManualSeverity] = useState('moderado');
   const [manualNote, setManualNote] = useState('');
 
   const stats = useMemo(() => {
@@ -31,10 +31,10 @@ export default function ErrorStatsPanel() {
     addManualError({
       page: currentPage,
       category: rubric.id,
-      severity: rubric.importance === 'alta' ? 'major' : 'moderate',
-      error: manualNote.trim() || `Registro manual: ${rubric.label} (nivel: ${manualLevel}).`,
+      severity: manualSeverity,
+      error: manualNote.trim() || `Registro manual: ${rubric.label} (severidad: ${manualSeverity}).`,
       original_text: '',
-      suggestion: rubric.levels[manualLevel],
+      suggestion: '',
     });
     setManualNote('');
   }
@@ -115,12 +115,12 @@ export default function ErrorStatsPanel() {
           </select>
           <select
             className="form-select form-select-sm mb-2"
-            value={manualLevel}
-            onChange={(event) => setManualLevel(event.target.value)}
+            value={manualSeverity}
+            onChange={(event) => setManualSeverity(event.target.value)}
           >
-            <option value="optimo">Óptimo</option>
-            <option value="aceptable">Aceptable</option>
-            <option value="insuficiente">Insuficiente</option>
+            <option value="leve">Leve</option>
+            <option value="moderado">Moderado</option>
+            <option value="grave">Grave</option>
           </select>
           <textarea
             className="form-control form-control-sm mb-2"

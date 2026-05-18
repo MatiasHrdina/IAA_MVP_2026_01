@@ -1,4 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useAppContext } from '../../context/AppContext';
 import { simulatePerformanceAnalysis } from '../../mock/api';
 import { exportPdfWithAnnotations } from '../../utils/pdfExport';
@@ -23,7 +25,6 @@ export default function Summary() {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isGeneratingAnalysis, setIsGeneratingAnalysis] = useState(false);
   const [exportMessage, setExportMessage] = useState('');
-  const analysisContentRef = useRef(null);
 
   const acceptedErrorCount = acceptedErrorRegistry.length;
 
@@ -211,19 +212,10 @@ export default function Summary() {
                   : ''}
               </small>
             </div>
-            <div className="card-body">
-              <pre
-                ref={analysisContentRef}
-                className="mb-0"
-                style={{
-                  whiteSpace: 'pre-wrap',
-                  fontFamily: '"Courier New", monospace',
-                  fontSize: '0.8rem',
-                  lineHeight: 1.5,
-                }}
-              >
+            <div className="card-body markdown-analysis">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {performanceAnalysis}
-              </pre>
+              </ReactMarkdown>
             </div>
           </div>
         )}

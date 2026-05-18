@@ -175,23 +175,27 @@ export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber, on
             Revert Annotation ({pageStrokeCount})
           </button>
         )}
-        <button
-          className={`btn btn-sm ${
-            isHighlightModeActive ? 'btn-warning' : 'btn-outline-warning'
-          }`}
-          onClick={handleToggleHighlight}
-        >
-          {isHighlightModeActive
-            ? 'Deactivate Highlight Mode'
-            : 'Activate Highlight Mode'}
-        </button>
-        {pageHighlightCount > 0 && (
-          <button
-            className="btn btn-sm btn-outline-warning"
-            onClick={handleRevertHighlight}
-          >
-            Revert Highlight ({pageHighlightCount})
-          </button>
+        {false && (
+          <>
+            <button
+              className={`btn btn-sm ${
+                isHighlightModeActive ? 'btn-warning' : 'btn-outline-warning'
+              }`}
+              onClick={handleToggleHighlight}
+            >
+              {isHighlightModeActive
+                ? 'Deactivate Highlight Mode'
+                : 'Activate Highlight Mode'}
+            </button>
+            {pageHighlightCount > 0 && (
+              <button
+                className="btn btn-sm btn-outline-warning"
+                onClick={handleRevertHighlight}
+              >
+                Revert Highlight ({pageHighlightCount})
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>
