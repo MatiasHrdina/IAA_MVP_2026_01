@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
 import { useAppContext } from '../../context/AppContext';
-import { MOCK_CORRECTIONS } from '../../mock/data';
 
 const ALLOWED_MIME_TYPE = 'application/pdf';
 const ALLOWED_EXTENSION = '.pdf';
@@ -68,7 +67,7 @@ export default function Upload() {
       file: selectedFile,
       url: documentUrl,
       totalPages,
-      errorCorpus: MOCK_CORRECTIONS,
+      errorCorpus: {},
     });
 
     setIsProcessing(false);

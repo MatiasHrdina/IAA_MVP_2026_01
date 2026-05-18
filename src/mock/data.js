@@ -83,62 +83,6 @@ export const MOCK_CREDENTIALS = {
   password: 'correct2024',
 };
 
-export const MOCK_CORRECTIONS_PAGE_1 = [
-  {
-    id: 1,
-    error: 'Incorrect verb tense in the introductory paragraph.',
-    original_text: 'the experiment demonstrates',
-    suggestion: 'the experiment demonstrated',
-    severity: 'moderate',
-    category: 'gramatica',
-    source: 'ai',
-  },
-  {
-    id: 2,
-    error: 'Missing definite article before the noun phrase.',
-    original_text: 'According to literature',
-    suggestion: 'According to the literature',
-    severity: 'minor',
-    category: 'gramatica',
-    source: 'ai',
-  },
-  {
-    id: 3,
-    error: 'Subject-verb disagreement in the main clause.',
-    original_text: 'The data indicates that',
-    suggestion: 'The data indicate that',
-    severity: 'major',
-    category: 'gramatica',
-    source: 'ai',
-  },
-];
-
-export const MOCK_CORRECTIONS_PAGE_2 = [
-  {
-    id: 4,
-    error: 'Ambiguous pronoun reference obscuring the antecedent.',
-    original_text: 'this leads to',
-    suggestion: 'this discrepancy leads to',
-    severity: 'moderate',
-    category: 'cohesion',
-    source: 'ai',
-  },
-  {
-    id: 5,
-    error: 'Run-on sentence requiring conjunction insertion.',
-    original_text: 'the results were inconclusive the hypothesis',
-    suggestion: 'the results were inconclusive; therefore, the hypothesis',
-    severity: 'major',
-    category: 'cohesion',
-    source: 'ai',
-  },
-];
-
-export const MOCK_CORRECTIONS = {
-  1: MOCK_CORRECTIONS_PAGE_1,
-  2: MOCK_CORRECTIONS_PAGE_2,
-};
-
 export const MOCK_EVALUATION_TEMPLATE = (acceptedErrors) => {
   const errorCount = acceptedErrors.length;
   const severityDist = acceptedErrors.reduce((acc, err) => {
