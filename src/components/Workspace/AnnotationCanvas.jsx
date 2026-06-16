@@ -164,15 +164,15 @@ export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber, on
           onClick={handleTogglePen}
         >
           {isDrawingModeActive
-            ? 'Deactivate Annotation Pen'
-            : 'Activate Annotation Pen'}
+            ? 'Desactivar Lápiz'
+            : 'Activar Lápiz'}
         </button>
         {pageStrokeCount > 0 && (
           <button
             className="btn btn-sm btn-outline-secondary"
             onClick={handleRevertAnnotation}
           >
-            Revert Annotation ({pageStrokeCount})
+            Deshacer ({pageStrokeCount})
           </button>
         )}
         {false && (

@@ -12,9 +12,9 @@ export default function Upload() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   function validateFile(file) {
-    if (!file) return 'No file was selected for ingestion.';
+    if (!file) return 'No se seleccionó ningún archivo.';
     if (file.type !== ALLOWED_MIME_TYPE && !file.name.toLowerCase().endsWith(ALLOWED_EXTENSION)) {
-      return 'Invalid file format. Only PDF documents are accepted.';
+      return 'Formato de archivo inválido. Solo se aceptan documentos PDF.';
     }
     return '';
   }
@@ -82,12 +82,12 @@ export default function Upload() {
               className="btn btn-outline-secondary btn-sm me-3"
               onClick={() => navigate('login')}
             >
-              &larr; Back
+              &larr; Volver
             </button>
             <div>
-              <h5 className="fw-bold mb-0">Document Ingestion</h5>
+              <h5 className="fw-bold mb-0">Carga de Documento</h5>
               <small className="text-muted">
-                Upload the academic report for evaluation
+                Suba el informe académico para su evaluación
               </small>
             </div>
           </div>
@@ -115,10 +115,10 @@ export default function Upload() {
                   &#128196;
                 </div>
                 <p className="mb-1 fw-semibold">
-                  Click to select a PDF document
+                  Haga clic para seleccionar un documento PDF
                 </p>
                 <small className="text-muted">
-                  Only .pdf files are permitted
+                  Solo se permiten archivos .pdf
                 </small>
               </>
             ) : (
@@ -140,8 +140,8 @@ export default function Upload() {
                       handleFileRemoval();
                     }}
                   >
-                    Remove
-                  </button>
+                    Eliminar
+                    </button>
                   <button
                     className="btn btn-dark btn-sm"
                     onClick={(e) => {
@@ -150,7 +150,7 @@ export default function Upload() {
                     }}
                     disabled={isProcessing}
                   >
-                    {isProcessing ? 'Processing...' : 'Proceed to Workspace'}
+                    {isProcessing ? 'Procesando...' : 'Ir al Espacio de Trabajo'}
                   </button>
                 </div>
               </>

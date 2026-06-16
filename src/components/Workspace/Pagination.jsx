@@ -34,7 +34,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
         disabled={currentPage <= 1}
         onClick={() => handleNavigate(-1)}
       >
-        &larr; Previous
+        &larr; Anterior
       </button>
 
       <div className="d-flex align-items-center gap-1">
@@ -53,7 +53,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
           className="btn btn-sm btn-outline-dark ms-1"
           onClick={handleDirectNavigation}
         >
-          Go
+          Ir
         </button>
       </div>
 
@@ -62,7 +62,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
         disabled={currentPage >= totalPages}
         onClick={() => handleNavigate(1)}
       >
-        Next &rarr;
+        Siguiente &rarr;
       </button>
     </div>
   );

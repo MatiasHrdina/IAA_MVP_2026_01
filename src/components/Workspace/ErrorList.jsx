@@ -56,7 +56,7 @@ export default function ErrorList({ errors, onAccept, onReject }) {
             {error.original_text && (
               <div className="mb-1">
                 <span className="text-muted" style={{ fontSize: '0.65rem' }}>
-                  Found:{' '}
+                  Encontrado:{' '}
                 </span>
                 <span
                   className="fst-italic bg-dark text-white px-1 rounded"
@@ -69,7 +69,7 @@ export default function ErrorList({ errors, onAccept, onReject }) {
             {error.suggestion && (
               <div className="mb-2">
                 <span className="text-muted" style={{ fontSize: '0.65rem' }}>
-                  Suggestion:{' '}
+                  Sugerencia:{' '}
                 </span>
                 <span
                   className="fst-italic text-success"
@@ -86,14 +86,14 @@ export default function ErrorList({ errors, onAccept, onReject }) {
                   style={{ fontSize: '0.65rem' }}
                   onClick={() => onAccept(error)}
                 >
-                  Accept
+                  Aceptar
                 </button>
                 <button
                   className="btn btn-sm btn-outline-danger py-0 px-2"
                   style={{ fontSize: '0.65rem' }}
                   onClick={() => onReject(error)}
                 >
-                  Reject
+                  Rechazar
                 </button>
               </div>
             )}

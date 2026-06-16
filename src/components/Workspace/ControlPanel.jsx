@@ -56,11 +56,11 @@ export default function ControlPanel() {
       if (response.success && response.errors.length > 0) {
         registerErrors({ page: currentPage, errors: response.errors });
         setAnalysisFeedback(
-          `Analisis completado. ${response.errors.length} error(es) detectado(s).`
+          `Análisis completado. ${response.errors.length} error(es) detectado(s).`
         );
       }
     } catch {
-      setAnalysisFeedback('Error durante el analisis. Intente de nuevo.');
+      setAnalysisFeedback('Error durante el análisis. Intente de nuevo.');
     }
 
     setIsAnalyzing(false);
@@ -83,10 +83,10 @@ export default function ControlPanel() {
             onClick={handleAutoAnalysis}
             disabled={isAnalyzing}
           >
-            {isAnalyzing ? 'Analizando...' : 'Analizar'}
+            {isAnalyzing ? 'Analizando...' : 'Analizar Página'}
           </button>
           <div className="text-center small text-muted mt-1">
-            Analiza la pagina actual en las 7 categorias de la rubrica
+            Analiza la página actual según las 7 categorías de la rúbrica
           </div>
           {analysisFeedback && (
             <div className="small text-muted mt-1">{analysisFeedback}</div>
@@ -95,12 +95,12 @@ export default function ControlPanel() {
 
         <div className="p-3" style={{ overflowY: 'auto', maxHeight: 'calc(75% - 60px)' }}>
           <h6 className="fw-semibold small text-uppercase text-muted mb-2">
-            Error Registry — Page {currentPage}
+            Registro de Errores — Pág. {currentPage}
           </h6>
           {pageErrors.length === 0 ? (
             <p className="small text-muted text-center py-4">
-              No se han detectado errores en esta pagina. Presione
-              "Analizar" para ejecutar la deteccion automatica.
+              No se han detectado errores en esta página. Presione
+              "Analizar Página" para ejecutar la detección automática.
             </p>
           ) : (
             <ErrorList

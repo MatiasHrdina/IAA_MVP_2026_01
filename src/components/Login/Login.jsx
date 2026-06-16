@@ -19,7 +19,7 @@ export default function Login() {
       authenticate({ email: emailField, role: 'professor' });
     } else {
       setValidationMessage(
-        'Authentication failed. Please verify your credentials and try again.'
+        'Autenticación fallida. Verifique sus credenciales e intente nuevamente.'
       );
     }
   }
@@ -32,16 +32,16 @@ export default function Login() {
             <div className="mb-3">
               <span className="badge bg-dark fs-6 px-3 py-2">AC</span>
             </div>
-            <h4 className="card-title fw-bold">Academic Correction Platform</h4>
+            <h4 className="card-title fw-bold">Plataforma de Corrección Académica</h4>
             <p className="text-muted small">
-              AI-Assisted Report Evaluation System
+              Sistema de Evaluación de Informes Asistido por IA
             </p>
           </div>
 
           <form onSubmit={handleSubmission}>
             <div className="mb-3">
               <label htmlFor="loginEmail" className="form-label small fw-semibold">
-                Institutional Email
+                Correo Institucional
               </label>
               <input
                 id="loginEmail"
@@ -56,7 +56,7 @@ export default function Login() {
 
             <div className="mb-3">
               <label htmlFor="loginPassword" className="form-label small fw-semibold">
-                Password
+                Contraseña
               </label>
               <input
                 id="loginPassword"
@@ -76,12 +76,12 @@ export default function Login() {
             )}
 
             <button type="submit" className="btn btn-dark w-100 mt-2">
-              Sign In
+              Iniciar Sesión
             </button>
           </form>
 
           <p className="text-center text-muted small mt-3 mb-0">
-            Demo credentials:{' '}
+            Credenciales de demo:{' '}
             <span className="fw-semibold">
               professor@academic.edu / correct2024
             </span>

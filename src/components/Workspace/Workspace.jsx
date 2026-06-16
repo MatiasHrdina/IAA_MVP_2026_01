@@ -12,13 +12,13 @@ export default function Workspace() {
       <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
         <div className="text-center">
           <p className="text-muted mb-3">
-            No document has been loaded for correction.
+            No se ha cargado ningún documento para corregir.
           </p>
           <button
             className="btn btn-dark"
             onClick={() => navigate('upload')}
           >
-            Return to Document Ingestion
+            Volver a Carga de Documento
           </button>
         </div>
       </div>
@@ -39,14 +39,14 @@ export default function Workspace() {
             className="btn btn-sm btn-outline-dark"
             onClick={() => navigate('summary')}
           >
-            View Evaluation Summary
+            Ver Resumen de Evaluación
           </button>
           <span className="text-muted small">|</span>
           <button
             className="btn btn-sm btn-outline-danger"
             onClick={() => navigate('upload')}
           >
-            New Document
+            Nuevo Documento
           </button>
         </div>
       </header>

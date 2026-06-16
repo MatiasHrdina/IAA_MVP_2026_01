@@ -47,7 +47,7 @@ export default function ErrorStatsPanel() {
           onClick={() => setIsCollapsed(false)}
           title="Mostrar estadísticas"
         >
-          Stats
+          Estadísticas
         </button>
       </aside>
     );

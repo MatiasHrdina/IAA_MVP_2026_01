@@ -295,7 +295,7 @@ export default function PdfViewer() {
     <div className="d-flex flex-column h-100">
       <div className="d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-light">
         <small className="fw-semibold text-muted">
-          Folio {currentPage} of {totalPages}
+          Folio {currentPage} de {totalPages}
         </small>
         <div className="d-flex gap-1">
           <button
@@ -321,7 +321,7 @@ export default function PdfViewer() {
       >
         {isLoading && (
           <div className="text-muted small position-absolute mt-5">
-            Rendering page...
+            Renderizando página...
           </div>
         )}
 

@@ -52,7 +52,7 @@ export default function Summary() {
     setExportMessage('');
 
     if (!documentFile) {
-      setExportMessage('No source document is available for export.');
+      setExportMessage('No hay documento disponible para exportar.');
       setIsExportingPdf(false);
       return;
     }
@@ -66,14 +66,14 @@ export default function Summary() {
       });
 
       if (result.success) {
-        setExportMessage(
-          `Report generated successfully with ${acceptedErrorCount} accepted correction(s) and manual annotations embedded.`
-        );
-      }
-    } catch (err) {
       setExportMessage(
-        `Report generation encountered an error: ${err.message || 'unknown error'}`
+        `Informe generado exitosamente con ${acceptedErrorCount} corrección(es) aceptada(s) y anotaciones manuales incrustadas.`
       );
+    }
+  } catch (err) {
+    setExportMessage(
+      `Error al generar el informe: ${err.message || 'error desconocido'}`
+    );
     }
 
     setIsExportingPdf(false);
@@ -98,16 +98,16 @@ export default function Summary() {
     <div className="d-flex justify-content-center bg-light" style={{ minHeight: '100vh' }}>
       <div className="py-5 px-4" style={{ width: '100%', maxWidth: '900px' }}>
         <div className="d-flex align-items-center mb-4">
-          <button
-            className="btn btn-outline-secondary btn-sm me-3"
-            onClick={() => navigate('workspace')}
-          >
-            &larr; Return to Workspace
-          </button>
+            <button
+              className="btn btn-outline-secondary btn-sm me-3"
+              onClick={() => navigate('workspace')}
+            >
+              &larr; Volver al Espacio de Trabajo
+            </button>
           <div>
-            <h4 className="fw-bold mb-0">Evaluative Summary &amp; Analysis</h4>
+            <h4 className="fw-bold mb-0">Resumen y Análisis Evaluativo</h4>
             <small className="text-muted">
-              Consolidated report of the academic correction process
+              Informe consolidado del proceso de corrección académica
             </small>
           </div>
         </div>
@@ -119,7 +119,7 @@ export default function Summary() {
                 {acceptedErrorCount}
               </div>
               <small className="text-muted">
-                Accepted Corrections
+                Correcciones Aceptadas
               </small>
             </div>
           </div>
@@ -129,7 +129,7 @@ export default function Summary() {
                 {state.rejectedErrorRegistry.length}
               </div>
               <small className="text-muted">
-                Rejected Corrections
+                Correcciones Rechazadas
               </small>
             </div>
           </div>
@@ -139,7 +139,7 @@ export default function Summary() {
                 {totalManualAnnotations}
               </div>
               <small className="text-muted">
-                Manual Annotations
+                Anotaciones Manuales
               </small>
             </div>
           </div>
@@ -151,7 +151,7 @@ export default function Summary() {
                   : '—'}
               </div>
               <small className="text-muted">
-                Document Size
+                Tamaño del Documento
               </small>
             </div>
           </div>
@@ -160,7 +160,7 @@ export default function Summary() {
         {Object.keys(severityCounts).length > 0 && (
           <div className="card border-0 shadow-sm p-3 mb-4">
             <h6 className="fw-semibold small text-uppercase text-muted mb-3">
-              Severity Distribution
+              Distribución por Severidad
             </h6>
             <div className="d-flex gap-3">
               {Object.entries(severityCounts).map(([severity, count]) => (
@@ -180,21 +180,21 @@ export default function Summary() {
             disabled={isGeneratingAnalysis || acceptedErrorCount === 0}
           >
             {isGeneratingAnalysis
-              ? 'Generating Analysis...'
-              : 'Generate Performance Analysis'}
+              ? 'Generando Análisis...'
+              : 'Generar Análisis de Rendimiento'}
           </button>
           <button
             className="btn btn-danger px-4"
             onClick={handleMakeReport}
             disabled={isExportingPdf || !documentFile}
           >
-            {isExportingPdf ? 'Generating Report...' : 'Make Report'}
+            {isExportingPdf ? 'Generando Informe...' : 'Generar Informe PDF'}
           </button>
         </div>
 
         {exportMessage && (
           <div className={`alert py-2 small ${
-            exportMessage.includes('successfully') ? 'alert-success' : 'alert-info'
+            exportMessage.includes('exitosamente') ? 'alert-success' : 'alert-info'
           }`} role="alert">
             {exportMessage}
           </div>
@@ -204,7 +204,7 @@ export default function Summary() {
           <div className="card border-0 shadow-sm">
             <div className="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-2">
               <span className="fw-semibold small">
-                AI-Generated Performance Analysis
+                Análisis de Rendimiento Generado por IA
               </span>
               <small className="text-muted">
                 {analysisGeneratedAt
@@ -223,8 +223,8 @@ export default function Summary() {
         {!performanceAnalysis && acceptedErrorCount === 0 && (
           <div className="text-center py-5 text-muted">
             <p>
-              No corrections have been accepted yet. Please return to the
-              correction workspace to evaluate the document.
+              No se han aceptado correcciones todavía. Vuelva al espacio de
+              trabajo para evaluar el documento.
             </p>
           </div>
         )}
