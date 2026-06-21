@@ -31,16 +31,69 @@ ${sections.join('\n\n')}
 INSTRUCCIÓN DEL USUARIO:
 ${userQuery}
 
-Analiza ÚNICAMENTE el texto de la sección "PÁGINA ACTUAL" según la rúbrica y detecta errores.
+Analiza ÚNICAMENTE el texto de la sección "PÁGINA ACTUAL" según la rúbrica y detecta TODOS los errores.
 Las secciones "PÁGINA ANTERIOR" y "PÁGINA SIGUIENTE" se incluyen solo como contexto para que puedas ver párrafos completos que continúan entre páginas; NO las analices.
-Responde ÚNICAMENTE con un array JSON. Cada objeto debe tener esta estructura exacta:
+
+IMPORTANTE: No hay límite en la cantidad de errores. Revisa CADA línea de la página actual. En una misma página puede haber 0, 1 o MÚLTIPLES errores de una misma categoría.
+
+Responde ÚNICAMENTE con un objeto JSON con esta estructura exacta:
 {
-  "error": "Descripción del error",
-  "original_text": "Texto exacto con el error",
-  "suggestion": "Texto corregido",
-  "category": "${RUBRIC_CATEGORY_IDS.join(' | ')}"
+  "errors": [
+    {
+      "error": "Descripción del error",
+      "original_text": "Texto exacto con el error",
+      "suggestion": "Texto corregido",
+      "category": "cientifica"
+    },
+    {
+      "error": "Descripción de otro error",
+      "original_text": "Otro texto exacto con error",
+      "suggestion": "Otra sugerencia de corrección",
+      "category": "coherencia"
+    }
+  ]
 }
-Si no hay errores, responde: []`;
+Si no hay errores, responde: {"errors": []}`;
+}
+
+function buildFullDocumentPrompt(pagesText, userQuery, pageNumbers) {
+  const sections = pagesText.map((text, index) => {
+    const pageNum = pageNumbers ? pageNumbers[index] : index + 1;
+    return `--- INICIO PÁGINA ${pageNum} ---\n${text}\n--- FIN PÁGINA ${pageNum} ---`;
+  });
+
+  return `TEXTO DEL DOCUMENTO:
+${sections.join('\n\n')}
+
+INSTRUCCIÓN DEL USUARIO:
+${userQuery}
+
+Analiza CADA página del documento según la rúbrica y detecta TODOS los errores presentes en cada página.
+
+IMPORTANTE: No hay límite en la cantidad de errores. Revisa CADA línea de CADA página. En una misma página puede haber 0, 1 o MÚLTIPLES errores de una misma categoría.
+
+Debes incluir el número de página al que pertenece cada error.
+
+Responde ÚNICAMENTE con un objeto JSON con esta estructura exacta:
+{
+  "errors": [
+    {
+      "error": "Descripción del error",
+      "original_text": "Texto exacto con el error",
+      "suggestion": "Texto corregido",
+      "category": "coherencia",
+      "page": 1
+    },
+    {
+      "error": "Descripción de otro error",
+      "original_text": "Otro texto exacto con error",
+      "suggestion": "Otra sugerencia de corrección",
+      "category": "gramatica",
+      "page": 1
+    }
+  ]
+}
+Si no hay errores, responde: {"errors": []}`;
 }
 
 function buildAnalysisPrompt(acceptedErrors, rejectedErrors, annotationStrokes, annotationHighlights) {
@@ -91,7 +144,7 @@ Genera un informe estructurado en español con:
 4. Áreas de mejora priorizadas`;
 }
 
-async function queryGroq(systemInstruction, userPrompt, useJsonMode) {
+async function queryGroq(systemInstruction, userPrompt, useJsonMode, maxTokens = 2000) {
   const body = {
     model: MODEL,
     messages: [
@@ -99,7 +152,7 @@ async function queryGroq(systemInstruction, userPrompt, useJsonMode) {
       { role: 'user', content: userPrompt },
     ],
     temperature: 0.3,
-    max_tokens: 2000,
+    max_tokens: maxTokens,
   };
 
   if (useJsonMode) {
@@ -126,13 +179,35 @@ async function queryGroq(systemInstruction, userPrompt, useJsonMode) {
 
 export async function detectErrors(currentText, prevText, nextText, userQuery) {
   const userPrompt = buildErrorDetectionPrompt(currentText, prevText, nextText, userQuery);
-  const raw = await queryGroq(SYSTEM_INSTRUCTION, userPrompt, true);
+  const raw = await queryGroq(SYSTEM_INSTRUCTION, userPrompt, true, 8000);
 
   try {
     const parsed = JSON.parse(raw);
+    if (parsed && Array.isArray(parsed.errors)) return parsed.errors;
     if (Array.isArray(parsed)) return parsed;
-    const found = Object.values(parsed).find(Array.isArray);
-    return found || [];
+    if (parsed && parsed.error && parsed.category) return [parsed];
+    for (const val of Object.values(parsed)) {
+      if (Array.isArray(val)) return val;
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+export async function detectFullDocumentErrors(pagesText, userQuery, pageNumbers) {
+  const userPrompt = buildFullDocumentPrompt(pagesText, userQuery, pageNumbers);
+  const raw = await queryGroq(SYSTEM_INSTRUCTION, userPrompt, true, 32000);
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && Array.isArray(parsed.errors)) return parsed.errors;
+    if (Array.isArray(parsed)) return parsed;
+    if (parsed && parsed.error && parsed.category) return [parsed];
+    for (const val of Object.values(parsed)) {
+      if (Array.isArray(val)) return val;
+    }
+    return [];
   } catch {
     return [];
   }

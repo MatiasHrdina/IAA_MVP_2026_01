@@ -80,6 +80,15 @@ function sessionReducer(state, action) {
       };
     }
 
+    case 'SET_ERRORS_BY_PAGE': {
+      return {
+        ...state,
+        errorCorpus: { ...action.payload.errorCorpus },
+        acceptedErrorRegistry: [],
+        rejectedErrorRegistry: [],
+      };
+    }
+
     case 'ACCEPT_ERROR': {
       const { page, error } = action.payload;
       const updatedPageErrors = (state.errorCorpus[page] || []).map((e) =>
@@ -269,6 +278,11 @@ export function AppContextProvider({ children }) {
     []
   );
 
+  const setErrorsByPage = useCallback(
+    (errorCorpus) => dispatch({ type: 'SET_ERRORS_BY_PAGE', payload: { errorCorpus } }),
+    []
+  );
+
   const acceptError = useCallback(
     (page, error) => dispatch({ type: 'ACCEPT_ERROR', payload: { page, error } }),
     []
@@ -335,6 +349,7 @@ export function AppContextProvider({ children }) {
     registerDocument,
     setCurrentPage,
     registerErrors,
+    setErrorsByPage,
     acceptError,
     rejectError,
     addManualError,
