@@ -10,7 +10,7 @@ const AUTO_ANALYSIS_PROMPT = `Realiza un analisis exhaustivo y detallado del tex
 6. Adecuacion y Gramatica: registro formal? vocabulario preciso? nucleo verbal?
 7. Formato y Ortografia: formato homogeneo? ortografia literal y acentual?
 
-Para cada error detectado, indica obligatoriamente: categoria (id de la rubrica), severidad (minor/moderate/major), el texto exacto donde ocurre, y una sugerencia de correccion. No omitas ningun error. Si no hay errores en una categoria, simplemente no la incluyas.`;
+Para cada error detectado, indica obligatoriamente: categoria (id de la rubrica), el texto exacto donde ocurre, y una sugerencia de correccion. No omitas ningun error. Si no hay errores en una categoria, simplemente no la incluyas.`;
 
 export async function simulateAutoAnalysis(currentPage, pageTexts = {}) {
   try {
@@ -42,7 +42,7 @@ export async function simulateAutoAnalysis(currentPage, pageTexts = {}) {
       page: currentPage,
     };
   } catch (err) {
-    console.warn('AI detection failed:', err.message);
+    console.warn('La detección de IA falló:', err.message);
     return { success: false, errors: [], page: currentPage, error: err.message };
   }
 }
@@ -77,7 +77,7 @@ export async function simulatePromptSubmission(promptText, currentPage, pageText
       page: currentPage,
     };
   } catch (err) {
-    console.warn('AI detection failed:', err.message);
+    console.warn('La detección de IA falló:', err.message);
     return { success: false, errors: [], page: currentPage, error: err.message };
   }
 }
@@ -97,7 +97,7 @@ export async function simulatePerformanceAnalysis(acceptedErrors, rejectedErrors
       generatedAt: new Date().toISOString(),
     };
   } catch (err) {
-    console.warn('AI analysis failed:', err.message);
+    console.warn('El análisis de IA falló:', err.message);
     return { success: false, analysis: '', generatedAt: new Date().toISOString(), error: err.message };
   }
 }

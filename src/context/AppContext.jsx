@@ -229,7 +229,7 @@ function sessionPersistenceMiddleware(reducer) {
       });
       sessionStorage.setItem(STORAGE_KEY, serialized);
     } catch {
-      /* storage unavailable — non-critical */
+      /* almacenamiento no disponible — no crítico */
     }
     return nextState;
   };
@@ -355,7 +355,7 @@ export function AppContextProvider({ children }) {
 export function useAppContext() {
   const ctx = useContext(AppContext);
   if (!ctx) {
-    throw new Error('useAppContext must be used within an AppContextProvider');
+    throw new Error('useAppContext debe usarse dentro de un AppContextProvider');
   }
   return ctx;
 }

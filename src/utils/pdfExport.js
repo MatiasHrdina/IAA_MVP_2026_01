@@ -124,7 +124,7 @@ async function highlightAcceptedErrorsOnPage(pdfPage, pdfJsPage, textsToHighligh
       }
     }
   } catch {
-    /* highlighting failed for this page */
+    /* fallo al resaltar en esta página */
   }
 }
 
@@ -208,7 +208,7 @@ export async function exportPdfWithAnnotations({
   anchor.href = url;
 
   const timestamp = new Date().toISOString().slice(0, 10);
-  anchor.download = `annotated_report_${timestamp}.pdf`;
+  anchor.download = `informe_anotado_${timestamp}.pdf`;
 
   document.body.appendChild(anchor);
   anchor.click();

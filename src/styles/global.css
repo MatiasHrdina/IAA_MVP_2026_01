@@ -86,7 +86,7 @@ pre {
   background-color: rgba(33, 37, 41, 0.4);
 }
 
-/* Error Stats Panel */
+/* Panel de Estadísticas de Errores */
 .stats-panel {
   width: 260px;
   flex-shrink: 0;
@@ -161,7 +161,7 @@ pre {
   line-height: 1.3;
 }
 
-/* Annotation toolbar improvements */
+/* Mejoras en la barra de herramientas de anotación */
 .annotation-toolbar {
   display: flex;
   gap: 4px;
@@ -179,18 +179,18 @@ pre {
   transform: scale(1.05);
 }
 
-/* Smooth transitions for mode toggles */
+/* Transiciones suaves para cambios de modo */
 .mode-transition {
   transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
 }
 
-/* Card subtle hover effect */
+/* Efecto sutil al pasar el ratón sobre tarjetas */
 .card-hover:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: box-shadow 0.2s ease;
 }
 
-/* Markdown analysis rendering */
+/* Renderizado de análisis Markdown */
 .markdown-analysis h1,
 .markdown-analysis h2,
 .markdown-analysis h3,
@@ -279,4 +279,35 @@ pre {
   border-radius: 3px;
   font-size: 0.85em;
   color: #d63384;
+}
+
+/* Tooltip para botón Aceptar sin severidad */
+.error-tooltip-wrapper {
+  position: relative;
+}
+
+.error-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 6px;
+  padding: 4px 8px;
+  background: #dc3545;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.error-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 14px;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #dc3545;
 }

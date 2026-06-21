@@ -184,15 +184,15 @@ export default function AnnotationCanvas({ pageWidth, pageHeight, pageNumber, on
               onClick={handleToggleHighlight}
             >
               {isHighlightModeActive
-                ? 'Deactivate Highlight Mode'
-                : 'Activate Highlight Mode'}
+                ? 'Desactivar Modo Resaltado'
+                : 'Activar Modo Resaltado'}
             </button>
             {pageHighlightCount > 0 && (
               <button
                 className="btn btn-sm btn-outline-warning"
                 onClick={handleRevertHighlight}
               >
-                Revert Highlight ({pageHighlightCount})
+                Revertir Resaltado ({pageHighlightCount})
               </button>
             )}
           </>

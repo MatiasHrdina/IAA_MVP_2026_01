@@ -109,7 +109,7 @@ Distribución por Severidad:
 ${Object.entries(severityDist)
   .map(
     ([severity, count]) =>
-      `  - ${severity.charAt(0).toUpperCase() + severity.slice(1)}: ${count} ocurrencia(s)`
+      `  - ${severity === 'minor' ? 'Óptimo' : severity === 'moderate' ? 'Aceptable' : severity === 'major' ? 'Insuficiente' : severity}: ${count} ocurrencia(s)`
   )
   .join('\n')}
 
@@ -123,7 +123,8 @@ ${acceptedErrors
   .map((err) => {
     const cat = RUBRIC_CATEGORIES.find((c) => c.id === err.category);
     const catName = cat ? cat.label : err.category;
-    return `  * [${catName}] ${err.error} (Severidad: ${err.severity})`;
+    const sevLabel = err.severity === 'minor' ? 'Óptimo' : err.severity === 'moderate' ? 'Aceptable' : err.severity === 'major' ? 'Insuficiente' : err.severity;
+    return `  * [${catName}] ${err.error} (Severidad: ${sevLabel})`;
   })
   .join('\n')}
 

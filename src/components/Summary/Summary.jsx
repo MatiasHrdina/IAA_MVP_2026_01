@@ -165,7 +165,7 @@ export default function Summary() {
             <div className="d-flex gap-3">
               {Object.entries(severityCounts).map(([severity, count]) => (
                 <div key={severity} className="text-center px-3 py-2 rounded bg-light">
-                  <div className="fw-bold text-capitalize">{severity}</div>
+                  <div className="fw-bold">{severity === 'minor' ? 'Óptimo' : severity === 'moderate' ? 'Aceptable' : severity === 'major' ? 'Insuficiente' : severity}</div>
                   <div className="fs-4 fw-bold">{count}</div>
                 </div>
               ))}

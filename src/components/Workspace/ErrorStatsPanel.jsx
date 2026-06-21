@@ -7,7 +7,7 @@ export default function ErrorStatsPanel() {
   const { acceptedErrorRegistry, currentPage, annotationStrokes, annotationHighlights } = state;
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [manualCategory, setManualCategory] = useState(RUBRIC_CATEGORIES[0].id);
-  const [manualSeverity, setManualSeverity] = useState('moderado');
+  const [manualSeverity, setManualSeverity] = useState('moderate');
   const [manualNote, setManualNote] = useState('');
 
   const stats = useMemo(() => {
@@ -118,9 +118,9 @@ export default function ErrorStatsPanel() {
             value={manualSeverity}
             onChange={(event) => setManualSeverity(event.target.value)}
           >
-            <option value="leve">Leve</option>
-            <option value="moderado">Moderado</option>
-            <option value="grave">Grave</option>
+            <option value="minor">Óptimo</option>
+            <option value="moderate">Aceptable</option>
+            <option value="major">Insuficiente</option>
           </select>
           <textarea
             className="form-control form-control-sm mb-2"

@@ -1,9 +1,16 @@
+import { useState } from 'react';
 import { RUBRIC_CATEGORIES } from '../../mock/data';
 
+const SEVERITY_OPTIONS = [
+  { id: 'minor', label: 'Óptimo', class: 'btn-outline-success', activeClass: 'btn-success' },
+  { id: 'moderate', label: 'Aceptable', class: 'btn-outline-info', activeClass: 'btn-info' },
+  { id: 'major', label: 'Insuficiente', class: 'btn-outline-danger', activeClass: 'btn-danger' },
+];
+
 const SEVERITY_CLASS_MAP = {
-  minor: 'bg-warning-subtle border-warning',
-  moderate: 'bg-info-subtle border-info',
-  major: 'bg-danger-subtle border-danger',
+  minor: 'border-success bg-success-subtle',
+  moderate: 'border-info bg-info-subtle',
+  major: 'border-danger bg-danger-subtle',
   info: 'bg-secondary-subtle border-secondary',
 };
 
@@ -14,11 +21,35 @@ function getCategoryLabel(categoryId) {
 }
 
 export default function ErrorList({ errors, onAccept, onReject }) {
+  const [selectedSeverities, setSelectedSeverities] = useState({});
+  const [tooltipErrorId, setTooltipErrorId] = useState(null);
+
+  function handleSelectSeverity(errorId, severityId) {
+    setSelectedSeverities((prev) => ({ ...prev, [errorId]: severityId }));
+    setTooltipErrorId(null);
+  }
+
+  function handleAccept(error) {
+    const severity = selectedSeverities[error.id];
+    if (!severity) {
+      setTooltipErrorId(error.id);
+      return;
+    }
+    setTooltipErrorId(null);
+    onAccept({ ...error, severity });
+  }
+
   return (
     <div className="d-flex flex-column gap-2">
       {errors.map((error) => {
-        const severityClass = SEVERITY_CLASS_MAP[error.severity] || 'bg-light border-secondary';
+        const selectedSeverity = selectedSeverities[error.id];
+        const severityClass = selectedSeverity
+          ? SEVERITY_CLASS_MAP[selectedSeverity]
+          : error.severity === 'info'
+          ? SEVERITY_CLASS_MAP.info
+          : 'bg-light border-secondary';
         const isResolved = error.status === 'accepted' || error.status === 'rejected';
+        const showTooltip = tooltipErrorId === error.id;
         const categoryLabel = getCategoryLabel(error.category);
 
         return (
@@ -29,9 +60,21 @@ export default function ErrorList({ errors, onAccept, onReject }) {
             }`}
           >
             <div className="d-flex justify-content-between align-items-start mb-1">
-              <span className="fw-semibold text-capitalize" style={{ fontSize: '0.7rem' }}>
-                {error.severity}
-              </span>
+              <div className="d-flex gap-1">
+                {SEVERITY_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    className={`btn btn-sm py-0 px-2 ${
+                      selectedSeverity === opt.id ? opt.activeClass : opt.class
+                    }`}
+                    style={{ fontSize: '0.65rem' }}
+                    onClick={() => handleSelectSeverity(error.id, opt.id)}
+                    disabled={isResolved}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
               <div className="d-flex gap-1 align-items-center">
                 {categoryLabel && (
                   <span className="badge bg-dark" style={{ fontSize: '0.6rem' }}>
@@ -45,7 +88,7 @@ export default function ErrorList({ errors, onAccept, onReject }) {
                     }`}
                     style={{ fontSize: '0.6rem' }}
                   >
-                    {error.status}
+                    {error.status === 'accepted' ? 'Aceptado' : 'Rechazado'}
                   </span>
                 )}
               </div>
@@ -80,14 +123,19 @@ export default function ErrorList({ errors, onAccept, onReject }) {
               </div>
             )}
             {!isResolved && (
-              <div className="d-flex gap-1 mt-1">
-                <button
-                  className="btn btn-sm btn-outline-success py-0 px-2"
-                  style={{ fontSize: '0.65rem' }}
-                  onClick={() => onAccept(error)}
-                >
-                  Aceptar
-                </button>
+              <div className="d-flex gap-1 mt-1 align-items-center">
+                <div className="error-tooltip-wrapper">
+                  <button
+                    className="btn btn-sm btn-outline-success py-0 px-2"
+                    style={{ fontSize: '0.65rem' }}
+                    onClick={() => handleAccept(error)}
+                  >
+                    Aceptar
+                  </button>
+                  {showTooltip && (
+                    <div className="error-tooltip">Escoge la severidad</div>
+                  )}
+                </div>
                 <button
                   className="btn btn-sm btn-outline-danger py-0 px-2"
                   style={{ fontSize: '0.65rem' }}
