@@ -25,11 +25,14 @@ export default function Summary() {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isGeneratingAnalysis, setIsGeneratingAnalysis] = useState(false);
   const [exportMessage, setExportMessage] = useState('');
+  const [analysisError, setAnalysisError] = useState('');
 
-  const acceptedErrorCount = acceptedErrorRegistry.length;
+  const aiAcceptedCount = acceptedErrorRegistry.filter((e) => e.source === 'ai').length;
+  const manualErrorCount = acceptedErrorRegistry.filter((e) => e.source === 'manual').length;
 
   async function handleGenerateAnalysis() {
     setIsGeneratingAnalysis(true);
+    setAnalysisError('');
     try {
       const result = await simulatePerformanceAnalysis(
         acceptedErrorRegistry,
@@ -37,14 +40,19 @@ export default function Summary() {
         annotationStrokes,
         annotationHighlights
       );
+      if (!result.success || !result.analysis) {
+        setAnalysisError('Hubo un error, intente de nuevo.');
+        return;
+      }
       generateAnalysis({
         analysis: result.analysis,
         generatedAt: result.generatedAt,
       });
     } catch {
-      /* mock failure handled silently */
+      setAnalysisError('Hubo un error, intente de nuevo.');
+    } finally {
+      setIsGeneratingAnalysis(false);
     }
-    setIsGeneratingAnalysis(false);
   }
 
   async function handleMakeReport() {
@@ -63,11 +71,14 @@ export default function Summary() {
         annotationStrokes,
         annotationHighlights,
         acceptedErrorRegistry,
+        errorCorpus: state.errorCorpus,
+        rejectedErrorRegistry: state.rejectedErrorRegistry,
+        performanceAnalysis: state.performanceAnalysis,
       });
 
       if (result.success) {
       setExportMessage(
-        `Informe generado exitosamente con ${acceptedErrorCount} corrección(es) aceptada(s) y anotaciones manuales incrustadas.`
+        `        Informe generado exitosamente con ${aiAcceptedCount} corrección(es) de IA aceptada(s) y ${manualErrorCount} corrección(es) manual(es) incrustadas.`
       );
     }
   } catch (err) {
@@ -84,15 +95,7 @@ export default function Summary() {
     return acc;
   }, {});
 
-  const totalStrokeCount = Object.values(annotationStrokes).reduce(
-    (sum, strokes) => sum + strokes.length,
-    0
-  );
-  const totalHighlightCount = Object.values(annotationHighlights).reduce(
-    (sum, highlights) => sum + highlights.length,
-    0
-  );
-  const totalManualAnnotations = totalStrokeCount + totalHighlightCount;
+
 
   return (
     <div className="d-flex justify-content-center bg-light" style={{ minHeight: '100vh' }}>
@@ -116,7 +119,7 @@ export default function Summary() {
           <div className="col-md-3">
             <div className="card border-0 shadow-sm text-center p-3">
               <div className="fs-2 fw-bold text-dark">
-                {acceptedErrorCount}
+                {aiAcceptedCount}
               </div>
               <small className="text-muted">
                 Correcciones Aceptadas
@@ -136,10 +139,10 @@ export default function Summary() {
           <div className="col-md-3">
             <div className="card border-0 shadow-sm text-center p-3">
               <div className="fs-2 fw-bold text-dark">
-                {totalManualAnnotations}
+                {manualErrorCount}
               </div>
               <small className="text-muted">
-                Anotaciones Manuales
+                Correcciones Manuales
               </small>
             </div>
           </div>
@@ -177,7 +180,7 @@ export default function Summary() {
           <button
             className="btn btn-dark px-4"
             onClick={handleGenerateAnalysis}
-            disabled={isGeneratingAnalysis || acceptedErrorCount === 0}
+            disabled={isGeneratingAnalysis || acceptedErrorRegistry.length === 0}
           >
             {isGeneratingAnalysis
               ? 'Generando Análisis...'
@@ -197,6 +200,12 @@ export default function Summary() {
             exportMessage.includes('exitosamente') ? 'alert-success' : 'alert-info'
           }`} role="alert">
             {exportMessage}
+          </div>
+        )}
+
+        {analysisError && (
+          <div className="alert alert-danger py-2 small" role="alert">
+            {analysisError}
           </div>
         )}
 
@@ -220,7 +229,7 @@ export default function Summary() {
           </div>
         )}
 
-        {!performanceAnalysis && acceptedErrorCount === 0 && (
+        {!performanceAnalysis && aiAcceptedCount === 0 && manualErrorCount === 0 && (
           <div className="text-center py-5 text-muted">
             <p>
               No se han aceptado correcciones todavía. Vuelva al espacio de
