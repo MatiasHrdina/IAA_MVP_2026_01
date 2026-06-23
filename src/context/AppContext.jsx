@@ -84,8 +84,8 @@ function sessionReducer(state, action) {
       return {
         ...state,
         errorCorpus: { ...action.payload.errorCorpus },
-        acceptedErrorRegistry: [],
-        rejectedErrorRegistry: [],
+        acceptedErrorRegistry: [...state.acceptedErrorRegistry],
+        rejectedErrorRegistry: [...state.rejectedErrorRegistry],
       };
     }
 

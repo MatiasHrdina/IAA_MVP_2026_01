@@ -1,4 +1,12 @@
 import { detectErrors, detectFullDocumentErrors, generatePerformanceAnalysis } from '../services/aiService';
+import { RUBRIC_CATEGORIES } from './data';
+
+const VALID_CATEGORY_IDS = RUBRIC_CATEGORIES.map((c) => c.id);
+
+function normalizeCategory(err) {
+  const cat = err.category || err.categoria;
+  return VALID_CATEGORY_IDS.includes(cat) ? cat : null;
+}
 
 const AUTO_ANALYSIS_PROMPT = `Realiza un analisis exhaustivo y detallado del texto de la pagina actual segun las 7 categorias de la rubrica academica. Evalua minuciosamente CADA linea y detecta TODOS los errores presentes:
 
@@ -53,6 +61,7 @@ export async function simulateFullDocumentAnalysis(pageTexts = {}) {
           ...err,
           id: Date.now() + errorIdCounter,
           source: 'ai',
+          category: normalizeCategory(err),
           page: Number(err.page) || batchKeys[0],
         };
       });
@@ -83,6 +92,7 @@ export async function simulateAutoAnalysis(currentPage, pageTexts = {}) {
       ...err,
       id: Date.now() + idx,
       source: 'ai',
+      category: normalizeCategory(err),
     }));
 
     return {
@@ -118,6 +128,7 @@ export async function simulatePromptSubmission(promptText, currentPage, pageText
       ...err,
       id: Date.now() + idx,
       source: 'ai',
+      category: normalizeCategory(err),
     }));
 
     return {

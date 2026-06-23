@@ -19,6 +19,7 @@ export default function ControlPanel() {
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isAnalyzingFull, setIsAnalyzingFull] = useState(false);
+  const [isExtractingText, setIsExtractingText] = useState(true);
   const [analysisFeedback, setAnalysisFeedback] = useState('');
   const pageTextsRef = useRef({});
 
@@ -26,6 +27,8 @@ export default function ControlPanel() {
 
   useEffect(() => {
     if (!documentUrl) return;
+
+    setIsExtractingText(true);
 
     const pdfLoad = async () => {
       try {
@@ -40,6 +43,8 @@ export default function ControlPanel() {
         pageTextsRef.current = texts;
       } catch {
         /* text extraction error */
+      } finally {
+        setIsExtractingText(false);
       }
     };
 
@@ -47,6 +52,12 @@ export default function ControlPanel() {
   }, [documentUrl]);
 
   const handleAutoAnalysis = useCallback(async () => {
+    const pageCount = Object.keys(pageTextsRef.current).length;
+    if (pageCount === 0) {
+      setAnalysisFeedback('El texto del PDF aún se está extrayendo. Espere un momento y vuelva a intentarlo.');
+      return;
+    }
+
     setIsAnalyzing(true);
     setAnalysisFeedback('');
 
@@ -73,6 +84,12 @@ export default function ControlPanel() {
   }, [currentPage, registerErrors]);
 
   const handleFullAnalysis = useCallback(async () => {
+    const pageCount = Object.keys(pageTextsRef.current).length;
+    if (pageCount === 0) {
+      setAnalysisFeedback('El texto del PDF aún se está extrayendo. Espere un momento y vuelva a intentarlo.');
+      return;
+    }
+
     setIsAnalyzingFull(true);
     setAnalysisFeedback('');
 
@@ -113,10 +130,15 @@ export default function ControlPanel() {
     <div className="d-flex flex-column h-100">
       <div className="flex-grow-1" style={{ overflow: 'hidden' }}>
         <div className="p-3 border-bottom">
+          {isExtractingText && (
+            <div className="small text-warning mb-2">
+              Extrayendo texto del PDF...
+            </div>
+          )}
           <button
             className="btn btn-dark w-100 mb-2"
             onClick={handleFullAnalysis}
-            disabled={isAnalyzingFull || isAnalyzing}
+            disabled={isAnalyzingFull || isAnalyzing || isExtractingText}
           >
             {isAnalyzingFull ? 'Analizando documento completo...' : 'Analizar Documento Completo'}
           </button>
@@ -126,7 +148,7 @@ export default function ControlPanel() {
           <button
             className="btn btn-outline-dark w-100"
             onClick={handleAutoAnalysis}
-            disabled={isAnalyzing || isAnalyzingFull}
+            disabled={isAnalyzing || isAnalyzingFull || isExtractingText}
           >
             {isAnalyzing ? 'Analizando...' : 'Analizar Página Actual'}
           </button>

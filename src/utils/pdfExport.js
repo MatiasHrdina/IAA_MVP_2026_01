@@ -29,9 +29,9 @@ const CATEGORY_LABELS = {
 const CATEGORY_ORDER = ['cientifica', 'coherencia', 'cohesion', 'resultados', 'referencias', 'gramatica', 'ortografia'];
 
 const SEVERITY_LABELS = {
-  minor: 'Leve',
-  moderate: 'Moderado',
-  major: 'Grave',
+  minor: 'Óptimo',
+  moderate: 'Aceptable',
+  major: 'Insuficiente',
   info: 'Informativo',
 };
 
@@ -56,24 +56,35 @@ function sanitizeForPdf(text) {
     .replace(/[\u2026]/g, '...')
     .replace(/[\u2022\u2023\u25E6]/g, '-')
     .replace(/[\u00AB\u00BB]/g, '"')
-    .replace(/[\u02DC]/g, ' ');
+    .replace(/[\u02DC]/g, ' ')
+    .replace(/\xa0/g, ' ')
+    .replace(/[\n\r]+/g, ' ');
 }
 
 function wrapText(text, font, fontSize, maxWidth) {
-  text = sanitizeForPdf(text);
-  const words = text.split(' ');
+  const rawLines = text.split(/\r?\n/);
   const lines = [];
-  let currentLine = '';
-  for (const word of words) {
-    const testLine = currentLine ? `${currentLine} ${word}` : word;
-    if (font.widthOfTextAtSize(testLine, fontSize) <= maxWidth) {
-      currentLine = testLine;
-    } else {
-      if (currentLine) lines.push(currentLine);
-      currentLine = word;
+  for (const rawLine of rawLines) {
+    const sanitized = sanitizeForPdf(rawLine);
+    if (!sanitized.trim()) {
+      if (lines.length > 0) lines.push('');
+      continue;
     }
+    const words = sanitized.split(/\s+/).filter(Boolean);
+    if (words.length === 0) continue;
+    let currentLine = words[0];
+    for (let i = 1; i < words.length; i++) {
+      const word = words[i];
+      const testLine = `${currentLine} ${word}`;
+      if (font.widthOfTextAtSize(testLine, fontSize) <= maxWidth) {
+        currentLine = testLine;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+    lines.push(currentLine);
   }
-  if (currentLine) lines.push(currentLine);
   return lines;
 }
 
@@ -174,10 +185,10 @@ function drawErrorEntry(pdfDoc, page, opt, y) {
   const severity = SEVERITY_LABELS[err.severity] || err.severity || 'No especificado';
   const pageStr = err.page ? `Pág ${err.page}` : '';
 
-  // Line 1: bullet + page + severity + error description
+  const errorText = sanitizeForPdf(String(err.error));
   let intro = `-`;
   if (pageStr) intro += ` [${pageStr}]`;
-  intro += ` [${severity}] ${err.error}`;
+  intro += ` [${severity}] ${errorText}`;
 
   const introLines = wrapText(intro, font, FS.BODY, maxW);
   const lineHeight = FS.BODY * LH;
@@ -228,6 +239,74 @@ function drawErrorEntry(pdfDoc, page, opt, y) {
   }
 
   cy -= 4; // spacing between errors
+  return { page: cp, y: cy };
+}
+
+function renderInlineBold(pdfDoc, page, text, font, boldFont, fontSize, x, maxWidth, pageHeight, y) {
+  const paragraphs = text.split(/\r?\n/);
+  let cp = page;
+  let cy = y;
+  const lineHeight = fontSize * LH;
+  const spaceWidth = font.widthOfTextAtSize(' ', fontSize);
+
+  for (const para of paragraphs) {
+    if (!para.trim()) {
+      if (cy - lineHeight < MARGIN.BOTTOM) {
+        cp = pdfDoc.addPage([cp.getWidth(), pageHeight]);
+        cy = pageHeight - MARGIN.TOP;
+      }
+      cy -= lineHeight;
+      continue;
+    }
+
+    const parts = para.split(/(\*\*[^*]+\*\*)/);
+    const tokens = [];
+    for (const part of parts) {
+      if (!part) continue;
+      if (part.startsWith('**') && part.endsWith('**')) {
+        const clean = sanitizeForPdf(part.slice(2, -2));
+        if (clean) tokens.push({ text: clean, bold: true });
+      } else {
+        const clean = sanitizeForPdf(part);
+        const words = clean.split(/\s+/).filter(Boolean);
+        for (const w of words) tokens.push({ text: w, bold: false });
+      }
+    }
+    if (tokens.length === 0) continue;
+
+    const lines = [];
+    let currentLine = [];
+    let currentWidth = 0;
+
+    for (const token of tokens) {
+      const wFont = token.bold ? boldFont : font;
+      const tokenWidth = wFont.widthOfTextAtSize(token.text, fontSize);
+      if (currentLine.length > 0 && currentWidth + spaceWidth + tokenWidth > maxWidth) {
+        lines.push(currentLine);
+        currentLine = [];
+        currentWidth = 0;
+      }
+      currentLine.push(token);
+      currentWidth += (currentLine.length > 1 ? spaceWidth : 0) + tokenWidth;
+    }
+    if (currentLine.length > 0) lines.push(currentLine);
+
+    for (const line of lines) {
+      if (cy - lineHeight < MARGIN.BOTTOM) {
+        cp = pdfDoc.addPage([cp.getWidth(), pageHeight]);
+        cy = pageHeight - MARGIN.TOP;
+      }
+      let lineX = x;
+      for (let i = 0; i < line.length; i++) {
+        const tok = line[i];
+        const wFont = tok.bold ? boldFont : font;
+        cp.drawText(tok.text, { x: lineX, y: cy, font: wFont, size: fontSize });
+        lineX += wFont.widthOfTextAtSize(tok.text, fontSize) + (i < line.length - 1 ? spaceWidth : 0);
+      }
+      cy -= lineHeight;
+    }
+  }
+
   return { page: cp, y: cy };
 }
 
@@ -299,24 +378,9 @@ function renderPerformanceAnalysis(pdfDoc, page, opt) {
     } else {
       // Check for bold markers (**text**)
       if (trimmed.includes('**')) {
-        const parts = trimmed.split(/(\*\*[^*]+\*\*)/);
-        let lineX = MARGIN.LEFT;
-        if (cy - FS.BODY * LH < MARGIN.BOTTOM) {
-          cp = pdfDoc.addPage([cp.getWidth(), pageHeight]);
-          cy = pageHeight - MARGIN.TOP;
-        }
-        for (const part of parts) {
-          if (!part) continue;
-          if (part.startsWith('**') && part.endsWith('**')) {
-            const boldText = part.slice(2, -2);
-            cp.drawText(boldText, { x: lineX, y: cy, font: boldFont, size: FS.BODY });
-            lineX += boldFont.widthOfTextAtSize(boldText, FS.BODY);
-          } else {
-            cp.drawText(part, { x: lineX, y: cy, font, size: FS.BODY });
-            lineX += font.widthOfTextAtSize(part, FS.BODY);
-          }
-        }
-        cy -= FS.BODY * LH;
+        const r = renderInlineBold(pdfDoc, cp, trimmed, font, boldFont, FS.BODY, MARGIN.LEFT, contentWidth, pageHeight, cy);
+        cp = r.page;
+        cy = r.y;
       } else {
         const bodyLines = wrapText(trimmed, font, FS.BODY, contentWidth);
         const r = drawParagraph(pdfDoc, cp, bodyLines, font, FS.BODY, MARGIN.LEFT, cy, contentWidth);
@@ -365,19 +429,41 @@ async function createAppendixPages(pdfDoc, {
   page.drawRectangle({ x: MARGIN.LEFT, y: sepY - 2, width: contentWidth, height: 1, color: rgb(0, 0, 0), opacity: 0.3 });
   y -= 16;
 
-  // Flatten AI errors from errorCorpus (these have source: 'ai')
-  const allAiErrors = [];
-  for (const [pageNum, errs] of Object.entries(errorCorpus)) {
-    for (const err of errs) {
-      allAiErrors.push({ ...err, page: parseInt(pageNum, 10) });
+  // Build severity lookup from acceptedErrorRegistry
+  const severityMap = {};
+  for (const err of acceptedErrorRegistry) {
+    if (err.id != null && err.severity) {
+      severityMap[err.id] = err.severity;
     }
   }
+
+  // Flatten AI errors from errorCorpus, merging severity for accepted ones
+  const allAiErrors = [];
+  const aiErrorIds = new Set();
+  for (const [pageNum, errs] of Object.entries(errorCorpus)) {
+    for (const err of errs) {
+      const merged = { ...err, page: parseInt(pageNum, 10) };
+      if (!merged.severity && severityMap[err.id]) {
+        merged.severity = severityMap[err.id];
+      }
+      allAiErrors.push(merged);
+      if (err.id != null) aiErrorIds.add(err.id);
+    }
+  }
+
+  // Accepted AI errors from registry whose id is no longer in errorCorpus
+  const acceptedAiErrors = acceptedErrorRegistry.filter(
+    (e) => e.source === 'ai' && !aiErrorIds.has(e.id)
+  );
 
   // Manual errors from acceptedErrorRegistry
   const manualErrors = acceptedErrorRegistry.filter((e) => e.source === 'manual');
 
+  // Combined AI errors (current corpus + previously accepted not in corpus)
+  const combinedAiErrors = [...allAiErrors, ...acceptedAiErrors];
+
   // Count total errors for empty-state check
-  const hasAnyErrors = allAiErrors.length > 0 || manualErrors.length > 0;
+  const hasAnyErrors = combinedAiErrors.length > 0 || manualErrors.length > 0;
 
   if (!hasAnyErrors) {
     const msg = 'No se encontraron errores en el documento.';
@@ -392,7 +478,7 @@ async function createAppendixPages(pdfDoc, {
     // Render each category
     for (const catId of CATEGORY_ORDER) {
       const catLabel = CATEGORY_LABELS[catId];
-      const catAi = allAiErrors.filter((e) => e.category === catId);
+      const catAi = combinedAiErrors.filter((e) => e.category === catId);
       const catManual = manualErrors.filter((e) => e.category === catId);
       if (catAi.length === 0 && catManual.length === 0) continue;
 
