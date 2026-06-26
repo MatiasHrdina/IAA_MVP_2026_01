@@ -188,10 +188,10 @@ export default function Summary() {
           </button>
           <button
             className="btn btn-danger px-4"
-            onClick={handleMakeReport}
-            disabled={isExportingPdf || !documentFile}
+            onClick={() => navigate('rubric')}
+            disabled={!documentFile}
           >
-            {isExportingPdf ? 'Generando Informe...' : 'Generar Informe PDF'}
+            Generar Informe PDF
           </button>
         </div>
 

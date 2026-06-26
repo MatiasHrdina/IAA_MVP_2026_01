@@ -23,6 +23,7 @@ const initialSessionState = {
 
   annotationStrokes: {},
   annotationHighlights: {},
+  rubricAnnotationStrokes: {},
 };
 
 function deserializeState(persisted) {
@@ -168,6 +169,36 @@ function sessionReducer(state, action) {
       };
     }
 
+    case 'RECORD_RUBRIC_STROKE': {
+      const { page, points, timestamp } = action.payload;
+      const pageStrokes = state.rubricAnnotationStrokes[page] || [];
+      return {
+        ...state,
+        rubricAnnotationStrokes: {
+          ...state.rubricAnnotationStrokes,
+          [page]: [...pageStrokes, { points, timestamp, page }],
+        },
+      };
+    }
+
+    case 'REVERT_LAST_RUBRIC_STROKE': {
+      const { page } = action.payload;
+      const currentStrokes = state.rubricAnnotationStrokes[page] || [];
+      if (currentStrokes.length === 0) return state;
+      const updatedStrokes = {
+        ...state.rubricAnnotationStrokes,
+        [page]: currentStrokes.slice(0, -1),
+      };
+      return { ...state, rubricAnnotationStrokes: updatedStrokes };
+    }
+
+    case 'CLEAR_RUBRIC_STROKES': {
+      return {
+        ...state,
+        rubricAnnotationStrokes: {},
+      };
+    }
+
     case 'RECORD_HIGHLIGHT': {
       const { page: hlPage, rects } = action.payload;
       const pageHighlights = state.annotationHighlights[hlPage] || [];
@@ -235,6 +266,7 @@ function sessionPersistenceMiddleware(reducer) {
         analysisGeneratedAt: nextState.analysisGeneratedAt,
         annotationStrokes: nextState.annotationStrokes,
         annotationHighlights: nextState.annotationHighlights,
+        rubricAnnotationStrokes: nextState.rubricAnnotationStrokes,
       });
       sessionStorage.setItem(STORAGE_KEY, serialized);
     } catch {
@@ -318,6 +350,21 @@ export function AppContextProvider({ children }) {
     []
   );
 
+  const recordRubricStroke = useCallback(
+    (stroke) => dispatch({ type: 'RECORD_RUBRIC_STROKE', payload: stroke }),
+    []
+  );
+
+  const revertRubricStroke = useCallback(
+    (page) => dispatch({ type: 'REVERT_LAST_RUBRIC_STROKE', payload: { page } }),
+    []
+  );
+
+  const clearRubricStrokes = useCallback(
+    () => dispatch({ type: 'CLEAR_RUBRIC_STROKES' }),
+    []
+  );
+
   const recordHighlight = useCallback(
     (highlight) => dispatch({ type: 'RECORD_HIGHLIGHT', payload: highlight }),
     []
@@ -357,6 +404,9 @@ export function AppContextProvider({ children }) {
     recordStroke,
     revertAnnotation,
     clearAllStrokes,
+    recordRubricStroke,
+    revertRubricStroke,
+    clearRubricStrokes,
     recordHighlight,
     revertHighlight,
     generateAnalysis,

@@ -394,6 +394,35 @@ function renderPerformanceAnalysis(pdfDoc, page, opt) {
   return { page: cp, y: cy };
 }
 
+const RUBRIC_PDF_PATH = '/assets/Rúbrica Escritura Español.pdf';
+
+async function appendRubricPages(pdfDoc, rubricAnnotationStrokes = {}, canvasWidth = 700) {
+  const response = await fetch(RUBRIC_PDF_PATH);
+  if (!response.ok) return;
+  const rubricBytes = await response.arrayBuffer();
+
+  const rubricDoc = await PDFDocument.load(rubricBytes);
+  const pageIndices = rubricDoc.getPageIndices();
+
+  for (const idx of pageIndices) {
+    const pageNumber = idx + 1;
+    const rubricPage = rubricDoc.getPage(idx);
+    const pdfPageWidth = rubricPage.getWidth();
+    const pdfPageHeight = rubricPage.getHeight();
+    const canvasHeight = pdfPageHeight * (canvasWidth / pdfPageWidth);
+
+    const strokes = rubricAnnotationStrokes[pageNumber];
+    if (strokes && strokes.length > 0) {
+      for (const stroke of strokes) {
+        drawStrokeOnPage(rubricPage, stroke, canvasWidth, canvasHeight);
+      }
+    }
+  }
+
+  const copiedPages = await pdfDoc.copyPages(rubricDoc, pageIndices);
+  copiedPages.forEach((page) => pdfDoc.addPage(page));
+}
+
 async function createAppendixPages(pdfDoc, {
   errorCorpus = {},
   acceptedErrorRegistry = [],
@@ -621,6 +650,8 @@ export async function exportPdfWithAnnotations({
   errorCorpus = {},
   rejectedErrorRegistry = [],
   performanceAnalysis = null,
+  rubricAnnotationStrokes = {},
+  rubricCanvasWidth = 700,
 }) {
   const arrayBuffer = await sourceFile.arrayBuffer();
 
@@ -693,6 +724,8 @@ export async function exportPdfWithAnnotations({
     acceptedErrorRegistry,
     performanceAnalysis,
   });
+
+  await appendRubricPages(pdfDoc, rubricAnnotationStrokes, rubricCanvasWidth);
 
   const pdfBytes = await pdfDoc.save();
   const blob = new Blob([pdfBytes], { type: 'application/pdf' });

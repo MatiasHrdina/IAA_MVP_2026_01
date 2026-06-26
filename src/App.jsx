@@ -3,6 +3,7 @@ import Login from './components/Login/Login';
 import Upload from './components/Upload/Upload';
 import Workspace from './components/Workspace/Workspace';
 import Summary from './components/Summary/Summary';
+import RubricAnnotation from './components/RubricAnnotation/RubricAnnotation';
 
 function ScreenRouter() {
   const { state } = useAppContext();
@@ -16,6 +17,8 @@ function ScreenRouter() {
       return <Workspace />;
     case 'summary':
       return <Summary />;
+    case 'rubric':
+      return <RubricAnnotation />;
     default:
       return <Login />;
   }
