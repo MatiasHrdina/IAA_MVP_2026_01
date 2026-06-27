@@ -191,7 +191,7 @@ export default function Summary() {
             onClick={() => navigate('rubric')}
             disabled={!documentFile}
           >
-            Generar Informe PDF
+            Anotar Rúbrica
           </button>
         </div>
 

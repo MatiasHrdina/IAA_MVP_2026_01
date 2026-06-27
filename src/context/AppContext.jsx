@@ -31,6 +31,8 @@ function deserializeState(persisted) {
   return {
     ...initialSessionState,
     ...persisted,
+    documentFile: null,
+    documentUrl: null,
   };
 }
 
@@ -255,8 +257,8 @@ function sessionPersistenceMiddleware(reducer) {
         isAuthenticated: nextState.isAuthenticated,
         currentUser: nextState.currentUser,
         currentScreen: nextState.currentScreen,
-        documentFile: nextState.documentFile,
-        documentUrl: nextState.documentUrl,
+        documentFile: null,
+        documentUrl: null,
         totalPages: nextState.totalPages,
         currentPage: nextState.currentPage,
         errorCorpus: nextState.errorCorpus,
