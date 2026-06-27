@@ -42,6 +42,11 @@ export default function RubricAnnotation() {
     aprobacion: 'N/A',
   });
 
+  const severityCounts = acceptedErrorRegistry.reduce((acc, err) => {
+    acc[err.severity] = (acc[err.severity] || 0) + 1;
+    return acc;
+  }, {});
+
   const pdfCanvasRef = useRef(null);
   const overlayCanvasRef = useRef(null);
   const currentStrokeRef = useRef([]);
@@ -329,6 +334,26 @@ export default function RubricAnnotation() {
               onChange={(e) => setRubricForm({ ...rubricForm, corrector: e.target.value })}
               placeholder="Nombre del corrector"
             />
+          </div>
+
+          <div className="border-top pt-3 mb-3">
+            <h6 className="fw-semibold small text-muted mb-2">
+              Distribución por Severidad
+            </h6>
+            {Object.keys(severityCounts).length > 0 ? (
+              <div className="d-flex gap-2 flex-wrap">
+                {Object.entries(severityCounts).map(([severity, count]) => (
+                  <div key={severity} className="text-center px-2 py-1 rounded bg-light flex-fill">
+                    <div className="fw-bold small">
+                      {severity === 'minor' ? 'Óptimo' : severity === 'moderate' ? 'Aceptable' : severity === 'major' ? 'Insuficiente' : severity}
+                    </div>
+                    <div className="fw-bold">{count}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <small className="text-muted">Sin datos</small>
+            )}
           </div>
 
           <div className="mb-3">
