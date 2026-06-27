@@ -396,7 +396,7 @@ function renderPerformanceAnalysis(pdfDoc, page, opt) {
 
 const RUBRIC_PDF_PATH = '/assets/Rúbrica Escritura Español.pdf';
 
-async function appendRubricPages(pdfDoc, rubricAnnotationStrokes = {}, canvasWidth = 700) {
+async function appendRubricPages(pdfDoc, rubricAnnotationStrokes = {}, canvasWidth = 700, formData = null) {
   const response = await fetch(RUBRIC_PDF_PATH);
   if (!response.ok) return;
   const rubricBytes = await response.arrayBuffer();
@@ -416,6 +416,38 @@ async function appendRubricPages(pdfDoc, rubricAnnotationStrokes = {}, canvasWid
       for (const stroke of strokes) {
         drawStrokeOnPage(rubricPage, stroke, canvasWidth, canvasHeight);
       }
+    }
+  }
+
+  if (formData && pageIndices.length > 0) {
+    const firstPage = rubricDoc.getPage(0);
+    const pw = firstPage.getWidth();
+    const ph = firstPage.getHeight();
+    const font = await rubricDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await rubricDoc.embedFont(StandardFonts.HelveticaBold);
+    const fs = 10;
+
+    const entries = [
+      { value: formData.curso || '',            x: 330,      y: ph - 57, bold: true, color: rgb(1, 0, 0),         size: fs,     maxWidth: 260 },
+      { value: formData.alumnosGrupo || '',     x: 377,      y: 135,     bold: true, color: rgb(0, 0, 0),           size: fs,     maxWidth: 410 },
+      { value: formData.corrector || '',        x: 505,      y: 109,     bold: true, color: rgb(0, 0, 0),           size: fs,     maxWidth: 280 },
+      { value: formData.aprobacion || '',       x: pw - 85,  y: ph - 50, bold: true, color: rgb(0, 0, 0),           size: fs * 3, maxWidth: Infinity },
+    ];
+
+    for (const entry of entries) {
+      const entryFont = entry.bold ? boldFont : font;
+      const lines = wrapText(entry.value, entryFont, entry.size, entry.maxWidth);
+      const lh = entry.size * 1.2;
+
+      lines.forEach((line, i) => {
+        firstPage.drawText(line, {
+          x: entry.x,
+          y: entry.y - i * lh,
+          font: entryFont,
+          size: entry.size,
+          color: entry.color,
+        });
+      });
     }
   }
 
@@ -652,6 +684,7 @@ export async function exportPdfWithAnnotations({
   performanceAnalysis = null,
   rubricAnnotationStrokes = {},
   rubricCanvasWidth = 700,
+  rubricFormData = null,
 }) {
   const arrayBuffer = await sourceFile.arrayBuffer();
 
@@ -725,7 +758,7 @@ export async function exportPdfWithAnnotations({
     performanceAnalysis,
   });
 
-  await appendRubricPages(pdfDoc, rubricAnnotationStrokes, rubricCanvasWidth);
+  await appendRubricPages(pdfDoc, rubricAnnotationStrokes, rubricCanvasWidth, rubricFormData);
 
   const pdfBytes = await pdfDoc.save();
   const blob = new Blob([pdfBytes], { type: 'application/pdf' });

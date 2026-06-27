@@ -74,12 +74,17 @@ export default function Workspace() {
       )}
 
       <header className="bg-white border-bottom px-4 py-2 d-flex align-items-center justify-content-between">
-        <button
-          className="btn btn-dark btn-sm"
-          onClick={handleNewDocument}
-        >
-          Nuevo Documento
-        </button>
+        <div className="d-flex align-items-center gap-3">
+          <button
+            className="btn btn-dark btn-sm"
+            onClick={handleNewDocument}
+          >
+            Nuevo Documento
+          </button>
+          <span className="fw-semibold small text-truncate" style={{ maxWidth: '300px' }}>
+            {documentFile?.name}
+          </span>
+        </div>
         <button
           className="btn btn-danger btn-sm"
           onClick={() => navigate('summary')}

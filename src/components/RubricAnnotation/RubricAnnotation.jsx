@@ -35,6 +35,12 @@ export default function RubricAnnotation() {
   const [exportMessage, setExportMessage] = useState('');
   const [exportMessageType, setExportMessageType] = useState('');
   const [showNewDocWarning, setShowNewDocWarning] = useState(false);
+  const [rubricForm, setRubricForm] = useState({
+    curso: '',
+    alumnosGrupo: '',
+    corrector: '',
+    aprobacion: 'N/A',
+  });
 
   const pdfCanvasRef = useRef(null);
   const overlayCanvasRef = useRef(null);
@@ -185,6 +191,7 @@ export default function RubricAnnotation() {
         performanceAnalysis,
         rubricAnnotationStrokes,
         rubricCanvasWidth: displayWidth,
+        rubricFormData: rubricForm,
       });
       if (result.success) {
         setExportMessage('Informe PDF descargado exitosamente.');
@@ -284,32 +291,79 @@ export default function RubricAnnotation() {
 
       <div className="flex-grow-1 d-flex" style={{ overflow: 'hidden' }}>
         <div
-          className="border-end bg-white d-flex flex-column align-items-center py-3 px-2"
-          style={{ width: '60px', minWidth: '60px', flexShrink: 0 }}
+          className="border-end bg-white d-flex flex-column px-3 py-3"
+          style={{ width: '25%', minWidth: '220px', flexShrink: 0 }}
         >
-          <button
-            className="btn btn-sm btn-outline-secondary mb-2"
-            disabled={currentPage <= 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
-            title="Página anterior"
-            style={{ writingMode: 'vertical-rl', fontSize: '0.7rem' }}
-          >
-            &larr; Anterior
-          </button>
-          <small className="text-muted mb-2" style={{ fontSize: '0.6rem' }}>
-            {currentPage}/{totalPages}
-          </small>
-          <button
-            className="btn btn-sm btn-outline-secondary"
-            disabled={currentPage >= totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
-            title="Página siguiente"
-            style={{ writingMode: 'vertical-rl', fontSize: '0.7rem' }}
-          >
-            Siguiente &rarr;
-          </button>
-          <div className="mt-auto text-muted" style={{ fontSize: '0.55rem', writingMode: 'vertical-rl' }}>
-            Registro de errores
+          <h6 className="fw-semibold small text-uppercase text-muted mb-3">
+            Datos de la Rúbrica
+          </h6>
+
+          <div className="mb-3">
+            <label className="form-label small fw-semibold mb-1">Curso:</label>
+            <input
+              type="text"
+              className="form-control form-control-sm"
+              value={rubricForm.curso}
+              onChange={(e) => setRubricForm({ ...rubricForm, curso: e.target.value })}
+              placeholder="Nombre del curso"
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label small fw-semibold mb-1">Alumnos/Grupo:</label>
+            <input
+              type="text"
+              className="form-control form-control-sm"
+              value={rubricForm.alumnosGrupo}
+              onChange={(e) => setRubricForm({ ...rubricForm, alumnosGrupo: e.target.value })}
+              placeholder="Nombre del alumno o grupo"
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label small fw-semibold mb-1">Corrector(a):</label>
+            <input
+              type="text"
+              className="form-control form-control-sm"
+              value={rubricForm.corrector}
+              onChange={(e) => setRubricForm({ ...rubricForm, corrector: e.target.value })}
+              placeholder="Nombre del corrector"
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label small fw-semibold mb-1">Aprobación:</label>
+            <select
+              className="form-select form-select-sm"
+              value={rubricForm.aprobacion}
+              onChange={(e) => setRubricForm({ ...rubricForm, aprobacion: e.target.value })}
+            >
+              <option value="R">R</option>
+              <option value="A">A</option>
+              <option value="N/A">N/A</option>
+            </select>
+          </div>
+
+          <div className="mt-auto border-top pt-3">
+            <div className="d-flex flex-column gap-2 align-items-center">
+              <small className="text-muted" style={{ fontSize: '0.6rem' }}>
+                {currentPage}/{totalPages}
+              </small>
+              <button
+                className="btn btn-sm btn-outline-secondary w-100"
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+              >
+                &larr; Anterior
+              </button>
+              <button
+                className="btn btn-sm btn-outline-secondary w-100"
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage((p) => p + 1)}
+              >
+                Siguiente &rarr;
+              </button>
+            </div>
           </div>
         </div>
 
