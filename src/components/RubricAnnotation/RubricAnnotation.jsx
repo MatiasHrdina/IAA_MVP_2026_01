@@ -35,6 +35,7 @@ export default function RubricAnnotation() {
   const [exportMessage, setExportMessage] = useState('');
   const [exportMessageType, setExportMessageType] = useState('');
   const [showNewDocWarning, setShowNewDocWarning] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   const [rubricForm, setRubricForm] = useState({
     curso: '',
     alumnosGrupo: '',
@@ -183,6 +184,18 @@ export default function RubricAnnotation() {
   }
 
   async function handleExport() {
+    const requiredFields = ['curso', 'alumnosGrupo', 'corrector'];
+    const errors = {};
+    for (const field of requiredFields) {
+      if (!rubricForm[field].trim()) errors[field] = true;
+    }
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      setExportMessage('Debes rellenar todos los DATOS DE LA RÚBRICA a la izquierda.');
+      setExportMessageType('error');
+      return;
+    }
+    setFormErrors({});
     setIsExporting(true);
     setExportMessage('');
     try {
@@ -307,9 +320,9 @@ export default function RubricAnnotation() {
             <label className="form-label small fw-semibold mb-1">Curso:</label>
             <input
               type="text"
-              className="form-control form-control-sm"
+              className={`form-control form-control-sm${formErrors.curso ? ' is-invalid' : ''}`}
               value={rubricForm.curso}
-              onChange={(e) => setRubricForm({ ...rubricForm, curso: e.target.value })}
+              onChange={(e) => { setRubricForm({ ...rubricForm, curso: e.target.value }); setFormErrors((prev) => ({ ...prev, curso: false })); }}
               placeholder="Nombre del curso"
             />
           </div>
@@ -318,9 +331,9 @@ export default function RubricAnnotation() {
             <label className="form-label small fw-semibold mb-1">Alumnos/Grupo:</label>
             <input
               type="text"
-              className="form-control form-control-sm"
+              className={`form-control form-control-sm${formErrors.alumnosGrupo ? ' is-invalid' : ''}`}
               value={rubricForm.alumnosGrupo}
-              onChange={(e) => setRubricForm({ ...rubricForm, alumnosGrupo: e.target.value })}
+              onChange={(e) => { setRubricForm({ ...rubricForm, alumnosGrupo: e.target.value }); setFormErrors((prev) => ({ ...prev, alumnosGrupo: false })); }}
               placeholder="Nombre del alumno o grupo"
             />
           </div>
@@ -329,9 +342,9 @@ export default function RubricAnnotation() {
             <label className="form-label small fw-semibold mb-1">Corrector(a):</label>
             <input
               type="text"
-              className="form-control form-control-sm"
+              className={`form-control form-control-sm${formErrors.corrector ? ' is-invalid' : ''}`}
               value={rubricForm.corrector}
-              onChange={(e) => setRubricForm({ ...rubricForm, corrector: e.target.value })}
+              onChange={(e) => { setRubricForm({ ...rubricForm, corrector: e.target.value }); setFormErrors((prev) => ({ ...prev, corrector: false })); }}
               placeholder="Nombre del corrector"
             />
           </div>

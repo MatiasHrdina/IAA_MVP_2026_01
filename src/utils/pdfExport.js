@@ -133,28 +133,16 @@ function renderCategorySection(pdfDoc, page, opt) {
   });
   cy -= 10;
 
-  // AI errors sub-header
-  if (aiErrors.length > 0) {
-    const r1 = drawSubHeader(pdfDoc, cp, boldFont, 'Errores detectados por IA', cy, pageHeight);
+  // Combined errors sub-header
+  const allErrors = [...aiErrors, ...manualErrors];
+  if (allErrors.length > 0) {
+    const r1 = drawSubHeader(pdfDoc, cp, boldFont, 'Errores encontrados', cy, pageHeight);
     cp = r1.page;
     cy = r1.y;
-    for (const err of aiErrors) {
-      const r2 = drawErrorEntry(pdfDoc, cp, { font, boldFont, contentWidth, pageHeight, err, showStatus: true }, cy);
+    for (const err of allErrors) {
+      const r2 = drawErrorEntry(pdfDoc, cp, { font, boldFont, contentWidth, pageHeight, err, showStatus: false }, cy);
       cp = r2.page;
       cy = r2.y;
-    }
-    cy -= 6;
-  }
-
-  // Manual errors sub-header
-  if (manualErrors.length > 0) {
-    const r3 = drawSubHeader(pdfDoc, cp, boldFont, 'Errores detectados por el corrector', cy, pageHeight);
-    cp = r3.page;
-    cy = r3.y;
-    for (const err of manualErrors) {
-      const r4 = drawErrorEntry(pdfDoc, cp, { font, boldFont, contentWidth, pageHeight, err, showStatus: false }, cy);
-      cp = r4.page;
-      cy = r4.y;
     }
     cy -= 6;
   }
@@ -503,6 +491,7 @@ async function createAppendixPages(pdfDoc, {
   const aiErrorIds = new Set();
   for (const [pageNum, errs] of Object.entries(errorCorpus)) {
     for (const err of errs) {
+      if (err.status !== 'accepted') continue;
       const merged = { ...err, page: parseInt(pageNum, 10) };
       if (!merged.severity && severityMap[err.id]) {
         merged.severity = severityMap[err.id];
