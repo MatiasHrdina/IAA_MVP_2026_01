@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { RUBRIC_CATEGORIES } from '../../mock/data';
 import { useAppContext } from '../../context/AppContext';
 
-export default function ErrorStatsPanel() {
+export default function ErrorStatsPanel({ disableManualEntry = false }) {
   const { state, addManualError, removeAcceptedError } = useAppContext();
   const { acceptedErrorRegistry, currentPage, annotationStrokes, annotationHighlights } = state;
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -98,43 +98,45 @@ export default function ErrorStatsPanel() {
           ))}
         </div>
 
-        <form className="border-top pt-3" onSubmit={handleAddManualEntry}>
-          <label className="form-label small fw-semibold mb-1">
-            Registro Manual
-          </label>
-          <select
-            className="form-select form-select-sm mb-2"
-            value={manualCategory}
-            onChange={(event) => setManualCategory(event.target.value)}
-          >
-            {RUBRIC_CATEGORIES.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.label}
-              </option>
-            ))}
-          </select>
-          <select
-            className="form-select form-select-sm mb-2"
-            value={manualSeverity}
-            onChange={(event) => setManualSeverity(event.target.value)}
-          >
-            <option value="minor">Óptimo</option>
-            <option value="moderate">Aceptable</option>
-            <option value="major">Insuficiente</option>
-          </select>
-          <textarea
-            className="form-control form-control-sm mb-2"
-            rows="2"
-            placeholder="Nota opcional para esta anotación manual"
-            value={manualNote}
-            onChange={(event) => setManualNote(event.target.value)}
-          />
-          <button className="btn btn-sm btn-dark w-100" type="submit">
-            Agregar Entrada Manual
-          </button>
-        </form>
+        {!disableManualEntry && (
+          <form className="border-top pt-3" onSubmit={handleAddManualEntry}>
+            <label className="form-label small fw-semibold mb-1">
+              Registro Manual
+            </label>
+            <select
+              className="form-select form-select-sm mb-2"
+              value={manualCategory}
+              onChange={(event) => setManualCategory(event.target.value)}
+            >
+              {RUBRIC_CATEGORIES.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.label}
+                </option>
+              ))}
+            </select>
+            <select
+              className="form-select form-select-sm mb-2"
+              value={manualSeverity}
+              onChange={(event) => setManualSeverity(event.target.value)}
+            >
+              <option value="minor">Óptimo</option>
+              <option value="moderate">Aceptable</option>
+              <option value="major">Insuficiente</option>
+            </select>
+            <textarea
+              className="form-control form-control-sm mb-2"
+              rows="2"
+              placeholder="Nota opcional para esta anotación manual"
+              value={manualNote}
+              onChange={(event) => setManualNote(event.target.value)}
+            />
+            <button className="btn btn-sm btn-dark w-100" type="submit">
+              Agregar Entrada Manual
+            </button>
+          </form>
+        )}
 
-        {manualEntries.length > 0 && (
+        {!disableManualEntry && manualEntries.length > 0 && (
           <div className="border-top mt-3 pt-3">
             <h6 className="small text-uppercase text-muted fw-semibold mb-2">
               Entradas Manuales

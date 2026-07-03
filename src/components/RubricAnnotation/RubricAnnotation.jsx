@@ -214,7 +214,6 @@ export default function RubricAnnotation() {
       if (result.success) {
         setExportMessage('Informe PDF descargado exitosamente.');
         setExportMessageType('success');
-        setTimeout(() => navigate('summary'), 1500);
       }
     } catch (err) {
       setExportMessage(`Error al generar el informe: ${err.message || 'error desconocido'}`);
@@ -455,7 +454,7 @@ export default function RubricAnnotation() {
           </div>
         </div>
 
-        <ErrorStatsPanel />
+        <ErrorStatsPanel disableManualEntry />
       </div>
     </div>
   );

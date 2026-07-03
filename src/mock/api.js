@@ -1,11 +1,24 @@
-import { detectErrors, detectFullDocumentErrors, generatePerformanceAnalysis } from '../services/aiService';
+import { detectErrors } from '../services/AISinglePageCorrection';
+import { detectFullDocumentErrors } from '../services/AIFullCorrection';
+import { generatePerformanceAnalysis } from '../services/AIPerformanceAnalysis';
 import { RUBRIC_CATEGORIES } from './data';
 
 const VALID_CATEGORY_IDS = RUBRIC_CATEGORIES.map((c) => c.id);
 
+const CATEGORY_NAME_TO_ID = Object.fromEntries(
+  RUBRIC_CATEGORIES.map((c) => [
+    c.label.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+    c.id,
+  ])
+);
+
 function normalizeCategory(err) {
-  const cat = err.category || err.categoria;
-  return VALID_CATEGORY_IDS.includes(cat) ? cat : null;
+  let cat = err.category || err.categoria || err.Category || err.Categoria || err.categoría || err.Categoría;
+  if (!cat) return null;
+  cat = String(cat).toLowerCase().trim();
+  cat = cat.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (VALID_CATEGORY_IDS.includes(cat)) return cat;
+  return CATEGORY_NAME_TO_ID[cat] || null;
 }
 
 const AUTO_ANALYSIS_PROMPT = `Realiza un analisis exhaustivo y detallado del texto de la pagina actual segun las 7 categorias de la rubrica academica. Evalua minuciosamente CADA linea y detecta TODOS los errores presentes:
@@ -83,10 +96,8 @@ export async function simulateFullDocumentAnalysis(pageTexts = {}) {
 export async function simulateAutoAnalysis(currentPage, pageTexts = {}) {
   try {
     const currentText = pageTexts[currentPage] || '';
-    const prevText = pageTexts[currentPage - 1] || '';
-    const nextText = pageTexts[currentPage + 1] || '';
 
-    const errors = await detectErrors(currentText, prevText, nextText, AUTO_ANALYSIS_PROMPT);
+    const errors = await detectErrors(currentText, AUTO_ANALYSIS_PROMPT);
 
     const errorsWithId = errors.map((err, idx) => ({
       ...err,
@@ -119,10 +130,8 @@ export async function simulateAutoAnalysis(currentPage, pageTexts = {}) {
 export async function simulatePromptSubmission(promptText, currentPage, pageTexts = {}) {
   try {
     const currentText = pageTexts[currentPage] || '';
-    const prevText = pageTexts[currentPage - 1] || '';
-    const nextText = pageTexts[currentPage + 1] || '';
 
-    const errors = await detectErrors(currentText, prevText, nextText, promptText);
+    const errors = await detectErrors(currentText, promptText);
 
     const errorsWithId = errors.map((err, idx) => ({
       ...err,

@@ -54,11 +54,14 @@ function sanitizeForPdf(text) {
     .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
     .replace(/[\u2013\u2014]/g, '-')
     .replace(/[\u2026]/g, '...')
-    .replace(/[\u2022\u2023\u25E6]/g, '-')
+    .replace(/[\u2022\u2023\u25E6\u25CF]/g, '-')
     .replace(/[\u00AB\u00BB]/g, '"')
     .replace(/[\u02DC]/g, ' ')
     .replace(/\xa0/g, ' ')
-    .replace(/[\n\r]+/g, ' ');
+    .replace(/[\n\r]+/g, ' ')
+    .replace(/[^\x20-\x7E\xA0-\xFF]/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 }
 
 function wrapText(text, font, fontSize, maxWidth) {

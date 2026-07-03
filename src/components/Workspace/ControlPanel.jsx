@@ -9,7 +9,6 @@ export default function ControlPanel() {
   const {
     state,
     registerErrors,
-    setErrorsByPage,
     acceptError,
     rejectError,
     setCurrentPage,
@@ -102,21 +101,23 @@ export default function ControlPanel() {
           if (!byPage[page]) byPage[page] = [];
           byPage[page].push(err);
         });
-        setErrorsByPage(byPage);
+        Object.entries(byPage).forEach(([page, errors]) => {
+          registerErrors({ page: Number(page), errors });
+        });
         setAnalysisFeedback(
           `Análisis completo: ${response.errors.length} error(es) en ${Object.keys(byPage).length} página(s).`
         );
       } else if (!response.success) {
-        setAnalysisFeedback('Hubo un error, intente de nuevo.');
+        setAnalysisFeedback(`Hubo un error: ${response.error || 'Error desconocido'}`);
       } else {
         setAnalysisFeedback('Análisis completo: no se detectaron errores.');
       }
-    } catch {
-      setAnalysisFeedback('Hubo un error, intente de nuevo.');
+    } catch (e) {
+      setAnalysisFeedback(`Hubo un error: ${e.message}`);
     }
 
     setIsAnalyzingFull(false);
-  }, [setErrorsByPage]);
+  }, [registerErrors]);
 
   function handleAccept(error) {
     acceptError(currentPage, error);
