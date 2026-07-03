@@ -47,7 +47,7 @@ export default function Login() {
                 id="loginEmail"
                 type="email"
                 className="form-control"
-                placeholder="professor@academic.edu"
+                placeholder="escritura@uandes.cl"
                 value={emailField}
                 onChange={(e) => setEmailField(e.target.value)}
                 required
@@ -83,7 +83,7 @@ export default function Login() {
           <p className="text-center text-muted small mt-3 mb-0">
             Credenciales de demo:{' '}
             <span className="fw-semibold">
-              professor@academic.edu / correct2024
+              escritura@uandes.cl / UANDES2020
             </span>
           </p>
         </div>

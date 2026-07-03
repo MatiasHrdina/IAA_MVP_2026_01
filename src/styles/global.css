@@ -311,3 +311,36 @@ pre {
   border: 5px solid transparent;
   border-top-color: #dc3545;
 }
+
+.severity-tooltip-wrapper {
+  position: relative;
+  cursor: default;
+}
+
+.severity-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  background: #dc3545;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 50;
+  line-height: 1.5;
+}
+
+.severity-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #dc3545;
+}

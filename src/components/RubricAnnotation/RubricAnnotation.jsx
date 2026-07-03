@@ -3,6 +3,7 @@ import { pdfjs } from 'react-pdf';
 import { useAppContext } from '../../context/AppContext';
 import { exportPdfWithAnnotations } from '../../utils/pdfExport';
 import ErrorStatsPanel from '../Workspace/ErrorStatsPanel';
+import { RUBRIC_CATEGORIES } from '../../mock/data';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -36,6 +37,7 @@ export default function RubricAnnotation() {
   const [exportMessageType, setExportMessageType] = useState('');
   const [showNewDocWarning, setShowNewDocWarning] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [hoveredSeverity, setHoveredSeverity] = useState(null);
   const [rubricForm, setRubricForm] = useState({
     curso: '',
     alumnosGrupo: '',
@@ -45,6 +47,14 @@ export default function RubricAnnotation() {
 
   const severityCounts = acceptedErrorRegistry.reduce((acc, err) => {
     acc[err.severity] = (acc[err.severity] || 0) + 1;
+    return acc;
+  }, {});
+
+  const severityCategoryCounts = acceptedErrorRegistry.reduce((acc, err) => {
+    if (!acc[err.severity]) acc[err.severity] = {};
+    const cat = RUBRIC_CATEGORIES.find((c) => c.id === err.category);
+    const label = cat ? cat.label : err.category;
+    acc[err.severity][label] = (acc[err.severity][label] || 0) + 1;
     return acc;
   }, {});
 
@@ -353,15 +363,33 @@ export default function RubricAnnotation() {
               Distribución por Severidad
             </h6>
             {Object.keys(severityCounts).length > 0 ? (
-              <div className="d-flex gap-2 flex-wrap">
-                {Object.entries(severityCounts).map(([severity, count]) => (
-                  <div key={severity} className="text-center px-2 py-1 rounded bg-light flex-fill">
-                    <div className="fw-bold small">
-                      {severity === 'minor' ? 'Óptimo' : severity === 'moderate' ? 'Aceptable' : severity === 'major' ? 'Insuficiente' : severity}
+                  <div className="d-flex gap-2 flex-wrap">
+                {Object.entries(severityCounts).map(([severity, count]) => {
+                  const catBreakdown = severityCategoryCounts[severity];
+                  const tooltipLines = catBreakdown
+                    ? Object.entries(catBreakdown).map(([cat, n]) => `${cat}: ${n}`)
+                    : [];
+                  return (
+                    <div
+                      key={severity}
+                      className="severity-tooltip-wrapper text-center px-2 py-1 rounded bg-light flex-fill"
+                      onMouseEnter={() => setHoveredSeverity(severity)}
+                      onMouseLeave={() => setHoveredSeverity(null)}
+                    >
+                      <div className="fw-bold small">
+                        {severity === 'minor' ? 'Óptimo' : severity === 'moderate' ? 'Aceptable' : severity === 'major' ? 'Insuficiente' : severity}
+                      </div>
+                      <div className="fw-bold">{count}</div>
+                      {hoveredSeverity === severity && tooltipLines.length > 0 && (
+                        <div className="severity-tooltip">
+                          {tooltipLines.map((line, i) => (
+                            <div key={i}>{line}</div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <div className="fw-bold">{count}</div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <small className="text-muted">Sin datos</small>

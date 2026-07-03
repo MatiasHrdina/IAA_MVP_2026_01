@@ -79,8 +79,8 @@ export const RUBRIC_CATEGORIES = [
 ];
 
 export const MOCK_CREDENTIALS = {
-  email: 'professor@academic.edu',
-  password: 'correct2024',
+  email: 'escritura@uandes.cl',
+  password: 'UANDES2020',
 };
 
 export const MOCK_EVALUATION_TEMPLATE = (acceptedErrors) => {

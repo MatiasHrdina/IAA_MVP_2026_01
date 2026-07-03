@@ -29,8 +29,8 @@ La **Plataforma de Corrección Académica (Academic Correction Platform)** es un
 
 1. Abra la aplicación en su navegador.
 2. En la pantalla de inicio de sesión, ingrese las siguientes credenciales de demostración:
-   - **Correo electrónico:** `professor@academic.edu`
-   - **Contraseña:** `correct2024`
+   - **Correo electrónico:** `escritura@uandes.cl`
+   - **Contraseña:** `UANDES2020`
 3. Haga clic en el botón **"Sign In"**.
 
 > **Nota:** La autenticación actual es simulada. En futuras versiones se integrará un sistema de autenticación real.
