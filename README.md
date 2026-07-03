@@ -162,7 +162,7 @@ src/
 ### Hardware
 
 | Componente | Mínimo |
-|---|---|---|
+|---|---|
 | RAM | 1 GB |
 | Procesador | Cualquier procesador moderno (Intel Core i3 / AMD Ryzen 3 o equivalente) |
 | Almacenamiento | 200 MB libres |
